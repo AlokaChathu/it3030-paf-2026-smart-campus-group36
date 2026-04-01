@@ -1,0 +1,33 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment files
+.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# React
+frontend/.vite/
+frontend/.cache/
+
+# Spring Boot / Maven
+backend/target/
+backend/.mvn/
+backend/*.iml
+
+# Java
+*.class
+
+# Coverage
+coverage/
