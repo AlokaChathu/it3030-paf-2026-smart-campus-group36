@@ -59,4 +59,16 @@ public class ResourceService {
         }
         resourceRepository.deleteById(id);
     }
+
+    public Resource updateResourceFully(Long id, ResourceRequest request) {
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resource not found with id: " + id));
+        
+        resource.setName(request.getName());
+        resource.setType(request.getType());
+        resource.setCapacity(request.getCapacity());
+        resource.setLocation(request.getLocation());
+        
+        return resourceRepository.save(resource);
+    }
 }

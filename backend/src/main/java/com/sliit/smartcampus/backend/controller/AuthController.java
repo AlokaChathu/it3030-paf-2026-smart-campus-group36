@@ -1,20 +1,46 @@
 package com.sliit.smartcampus.backend.controller;
 
+import com.sliit.smartcampus.backend.model.Role;
 import com.sliit.smartcampus.backend.model.User;
+import com.sliit.smartcampus.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-public class AuthController { // You can rename this class to UserController
+@RequiredArgsConstructor
+public class AuthController {
 
+    private final UserRepository userRepository;
+
+    // Get current logged-in user details
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal User currentUser) {
-        // The @AuthenticationPrincipal now automatically injects our database User object
-        // because we set it in the JwtAuthenticationFilter!
         return ResponseEntity.ok(currentUser);
+    }
+
+    // --- ADMIN FEATURES ---
+
+    // Get all users in the system (ADMIN only)
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll());
+    }
+
+    // Change a specific user's role (ADMIN only)
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> updateUserRole(@PathVariable Long id, @RequestParam Role newRole) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        
+        user.setRole(newRole);
+        return ResponseEntity.ok(userRepository.save(user));
     }
 }

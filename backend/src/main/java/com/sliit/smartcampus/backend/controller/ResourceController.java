@@ -58,4 +58,15 @@ public class ResourceController {
         resourceService.deleteResource(id);
         return ResponseEntity.noContent().build();
     }
+
+    // Fully update a resource (ADMIN only)
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Resource> updateResourceFully(
+            @PathVariable Long id, 
+            @Valid @RequestBody ResourceRequest request) {
+        
+        Resource updatedResource = resourceService.updateResourceFully(id, request);
+        return ResponseEntity.ok(updatedResource);
+    }
 }
