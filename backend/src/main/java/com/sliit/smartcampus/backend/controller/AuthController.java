@@ -43,4 +43,15 @@ public class AuthController {
         user.setRole(newRole);
         return ResponseEntity.ok(userRepository.save(user));
     }
+
+    // NEW: Delete a user from the system (ADMIN only)
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found with id: " + id);
+        }
+        userRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
