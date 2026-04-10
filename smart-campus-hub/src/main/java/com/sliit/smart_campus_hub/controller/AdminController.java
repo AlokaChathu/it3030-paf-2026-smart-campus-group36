@@ -42,4 +42,14 @@ public class AdminController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "Invalid role. Allowed: USER, TECHNICIAN, MANAGER, ADMIN"));
         }
     }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable String userId) {
+        User user = userService.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "User not found"));
+        }
+        userService.deleteUser(userId);
+        return ResponseEntity.ok(new ApiResponse(true, "User deleted successfully"));
+    }
 }

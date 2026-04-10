@@ -31,6 +31,10 @@ public class User {
     private String password; // null for Google users
     
     private String name;
+    private String fullName;
+    private String address;
+    private Integer age;
+    private String phoneNumber;
     
     private Role role;
     
@@ -47,4 +51,6 @@ public class User {
     
     private Date createdAt;
     private Date updatedAt;
+
+    
 }
