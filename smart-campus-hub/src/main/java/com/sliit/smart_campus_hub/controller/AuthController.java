@@ -44,44 +44,53 @@ public class AuthController {
     private JwtUtils jwtUtils;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
-        // Check if email already exists
-        if (userService.existsByEmail(request.getEmail())) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "Email is already taken!"));
-        }
-
-        // Generate OTP (6 digits)
-        String otp = String.format("%06d", new Random().nextInt(999999));
-        LocalDateTime otpExpiry = LocalDateTime.now().plusMinutes(10);
-
-        // Create new user
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
-                .role(Role.USER)
-                .provider(AuthProvider.LOCAL)
-                .emailVerified(false)
-                .otp(otp)
-                .otpExpiry(otpExpiry)
-                .createdAt(new java.util.Date())
-                .updatedAt(new java.util.Date())
-                .build();
-
-        userService.saveUser(user);
-
-        // Send OTP email
-        try {
-            emailService.sendOtpEmail(request.getEmail(), otp);
-        } catch (Exception e) {
-            // If email fails, still user is saved but not verified - log error
-            System.err.println("Failed to send OTP email: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse(false, "User registered but failed to send OTP. Please contact support."));
-        }
-
-        return ResponseEntity.ok(new ApiResponse(true, "Registration successful. OTP sent to your email."));
+public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
+    // Check if email already exists
+    if (userService.existsByEmail(request.getEmail())) {
+        return ResponseEntity.badRequest().body(new ApiResponse(false, "Email is already taken!"));
     }
+
+    // Determine role (default USER if not provided or invalid)
+    Role role = Role.USER;
+    if (request.getRole() != null && !request.getRole().isBlank()) {
+        try {
+            role = Role.valueOf(request.getRole().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Invalid role. Allowed: USER, TECHNICIAN, MANAGER, ADMIN"));
+        }
+    }
+
+    // Generate OTP (6 digits)
+    String otp = String.format("%06d", new Random().nextInt(999999));
+    LocalDateTime otpExpiry = LocalDateTime.now().plusMinutes(10);
+
+    // Create new user
+    User user = User.builder()
+            .email(request.getEmail())
+            .password(passwordEncoder.encode(request.getPassword()))
+            .name(request.getName())
+            .role(role)
+            .provider(AuthProvider.LOCAL)
+            .emailVerified(false)
+            .otp(otp)
+            .otpExpiry(otpExpiry)
+            .createdAt(new java.util.Date())
+            .updatedAt(new java.util.Date())
+            .build();
+
+    userService.saveUser(user);
+
+    // Send OTP email
+    try {
+        emailService.sendOtpEmail(request.getEmail(), otp);
+    } catch (Exception e) {
+        System.err.println("Failed to send OTP email: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse(false, "User registered but failed to send OTP. Please contact support."));
+    }
+
+    return ResponseEntity.ok(new ApiResponse(true, "Registration successful. OTP sent to your email."));
+}
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody OtpVerificationRequest request) {

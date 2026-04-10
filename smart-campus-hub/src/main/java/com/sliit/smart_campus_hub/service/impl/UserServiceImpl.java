@@ -9,6 +9,8 @@ import com.sliit.smart_campus_hub.model.User;
 import com.sliit.smart_campus_hub.repository.UserRepository;
 import com.sliit.smart_campus_hub.service.UserService;
 
+import java.util.List;  
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -33,5 +35,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> findById(String id) {
         return userRepository.findById(id);
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

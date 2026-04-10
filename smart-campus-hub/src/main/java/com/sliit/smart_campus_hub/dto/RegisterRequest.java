@@ -18,4 +18,6 @@ public class RegisterRequest {
     
     @NotBlank(message = "Name is required")
     private String name;
+    
+    private String role;   // Optional: USER, TECHNICIAN, MANAGER, ADMIN
 }
