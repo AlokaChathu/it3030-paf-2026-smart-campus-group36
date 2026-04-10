@@ -52,5 +52,8 @@ public class User {
     private Date createdAt;
     private Date updatedAt;
 
+    private String resetOtp;               // 6-digit OTP for password reset
+    private LocalDateTime resetOtpExpiry;  // expiry time
+
     
 }

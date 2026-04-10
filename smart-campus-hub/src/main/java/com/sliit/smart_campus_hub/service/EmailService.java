@@ -23,4 +23,13 @@ public class EmailService {
         message.setText("Your OTP for email verification is: " + otp + "\n\nThis OTP expires in 10 minutes.");
         mailSender.send(message);
     }
+
+    public void sendPasswordResetOtp(String to, String otp) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(to);
+        message.setSubject("Smart Campus Hub - Password Reset OTP");
+        message.setText("Your OTP for password reset is: " + otp + "\n\nThis OTP expires in 10 minutes.");
+        mailSender.send(message);
+    }
 }

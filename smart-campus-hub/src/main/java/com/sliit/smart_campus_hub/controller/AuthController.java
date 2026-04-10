@@ -25,6 +25,9 @@ import com.sliit.smart_campus_hub.dto.LoginRequest;
 import com.sliit.smart_campus_hub.dto.JwtResponse;
 import com.sliit.smart_campus_hub.utils.JwtUtils;
 
+import com.sliit.smart_campus_hub.dto.ForgotPasswordRequest;
+import com.sliit.smart_campus_hub.dto.ResetPasswordWithOtpRequest;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -152,4 +155,57 @@ public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
 
     return ResponseEntity.ok(new JwtResponse(token, user.getId(), user.getEmail(), user.getRole().name()));
 }
+
+@PostMapping("/forgot-password")
+public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    Optional<User> userOpt = userService.findByEmail(request.getEmail());
+    if (userOpt.isEmpty()) {
+        return ResponseEntity.badRequest().body(new ApiResponse(false, "Email not found"));
+    }
+    User user = userOpt.get();
+    
+    // Generate 6-digit OTP
+    String otp = String.format("%06d", new Random().nextInt(999999));
+    LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);
+    user.setResetOtp(otp);
+    user.setResetOtpExpiry(expiry);
+    userService.saveUser(user);
+    
+    try {
+        emailService.sendPasswordResetOtp(request.getEmail(), otp);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse(false, "Failed to send OTP. Try again later."));
+    }
+    return ResponseEntity.ok(new ApiResponse(true, "Password reset OTP sent to your email"));
+}
+
+@PostMapping("/reset-password")
+public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordWithOtpRequest request) {
+    Optional<User> userOpt = userService.findByEmail(request.getEmail());
+    if (userOpt.isEmpty()) {
+        return ResponseEntity.badRequest().body(new ApiResponse(false, "User not found"));
+    }
+    User user = userOpt.get();
+    
+    if (user.getResetOtp() == null || user.getResetOtpExpiry() == null) {
+        return ResponseEntity.badRequest().body(new ApiResponse(false, "No password reset request found. Please request OTP first."));
+    }
+    if (user.getResetOtpExpiry().isBefore(LocalDateTime.now())) {
+        return ResponseEntity.badRequest().body(new ApiResponse(false, "OTP has expired. Please request a new one."));
+    }
+    if (!user.getResetOtp().equals(request.getOtp())) {
+        return ResponseEntity.badRequest().body(new ApiResponse(false, "Invalid OTP"));
+    }
+    
+    // Update password
+    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+    user.setResetOtp(null);
+    user.setResetOtpExpiry(null);
+    userService.saveUser(user);
+    
+    return ResponseEntity.ok(new ApiResponse(true, "Password reset successfully. You can now log in with your new password."));
+}
+
+
 }
