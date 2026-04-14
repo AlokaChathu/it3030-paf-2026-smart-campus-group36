@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import com.sliit.smart_campus_hub.dto.ApiResponse;
 import com.sliit.smart_campus_hub.dto.RoleUpdateRequest;
 import com.sliit.smart_campus_hub.enums.Role;
+import com.sliit.smart_campus_hub.model.Notification;
 import com.sliit.smart_campus_hub.model.User;
+import com.sliit.smart_campus_hub.service.NotificationService;
 import com.sliit.smart_campus_hub.service.UserService;
 
 @RestController
@@ -21,6 +23,10 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private NotificationService notificationService;   // <-- added
+
+    // User management
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers() {
         List<User> users = userService.getAllUsers();
@@ -51,5 +57,22 @@ public class AdminController {
         }
         userService.deleteUser(userId);
         return ResponseEntity.ok(new ApiResponse(true, "User deleted successfully"));
+    }
+
+    // Notification admin endpoints
+    @GetMapping("/notifications")
+    public ResponseEntity<?> getAllNotifications() {
+        List<Notification> notifications = notificationService.getAllNotifications();
+        return ResponseEntity.ok(notifications);
+    }
+
+    @DeleteMapping("/notifications/{id}")
+    public ResponseEntity<?> adminDeleteNotification(@PathVariable String id) {
+        try {
+            notificationService.adminDelete(id);
+            return ResponseEntity.ok(new ApiResponse(true, "Notification deleted by admin"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Notification not found"));
+        }
     }
 }
