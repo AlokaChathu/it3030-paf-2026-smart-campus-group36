@@ -30,7 +30,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String token = jwtUtils.generateToken(email, userId, role);
 
         // Redirect to frontend (adjust port if needed)
-        String redirectUrl = "http://localhost:3000/oauth2/redirect?token=" + token;
+        String redirectUrl = "http://localhost:5173/oauth2/redirect?token=" + token;
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
