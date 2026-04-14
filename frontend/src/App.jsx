@@ -15,6 +15,10 @@ import OAuthRedirectPage from "./pages/auth/OAuthRedirectPage";
 
 import UserDashboardPage from "./pages/dashboard/UserDashboardPage";
 import AdminDashboardPage from "./pages/dashboard/AdminDashboardPage";
+import ProfilePage from "./pages/dashboard/ProfilePage";
+import NotificationsPage from "./pages/dashboard/NotificationsPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
 
 function App() {
   return (
@@ -79,10 +83,46 @@ function App() {
         />
 
         <Route
+          path="/user/profile"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER", "ADMIN"]}>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/notifications"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER"]}>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/admin/dashboard"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminUsersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/notifications"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminNotificationsPage />
             </ProtectedRoute>
           }
         />
