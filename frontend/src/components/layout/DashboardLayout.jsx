@@ -57,17 +57,20 @@ const DashboardLayout = ({ title, children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <div className="flex min-h-screen">
-        <aside className="hidden w-72 border-r border-gray-200 bg-white lg:flex lg:flex-col">
-          <div className="border-b border-gray-200 px-6 py-5">
+        {/* Sidebar */}
+        <aside className="hidden w-72 border-r border-slate-200/60 bg-white shadow-sm lg:flex lg:flex-col">
+          <div className="border-b border-slate-200/60 px-6 py-5">
             <Link to="/" className="flex items-center gap-3">
-              <div className="rounded-xl bg-gray-900 p-2 text-white">
+              <div className="rounded-xl bg-blue-600 p-2 text-white shadow-sm transition-shadow hover:shadow-md">
                 <Shield size={18} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Smart Campus Hub</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-semibold tracking-tight text-slate-900">
+                  Smart Campus Hub
+                </p>
+                <p className="text-xs text-slate-500">
                   {isAdmin ? "Admin Panel" : "User Panel"}
                 </p>
               </div>
@@ -75,19 +78,21 @@ const DashboardLayout = ({ title, children }) => {
           </div>
 
           <div className="px-4 py-5">
-            <div className="rounded-2xl bg-gray-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Signed in as</p>
-              <p className="mt-2 break-all text-sm font-semibold text-gray-900">
+            <div className="rounded-xl bg-blue-50/50 p-4 ring-1 ring-blue-100">
+              <p className="text-xs font-medium uppercase tracking-wider text-blue-600">
+                Signed in as
+              </p>
+              <p className="mt-2 break-all text-sm font-semibold text-slate-900">
                 {auth?.email || "-"}
               </p>
-              <p className="mt-1 text-xs font-medium text-gray-600">
+              <p className="mt-1 text-xs font-medium text-slate-600">
                 Role: {auth?.role || "-"}
               </p>
             </div>
           </div>
 
           <nav className="flex-1 px-4 pb-4">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {links.map((item) => {
                 const Icon = item.icon;
 
@@ -96,10 +101,10 @@ const DashboardLayout = ({ title, children }) => {
                     key={item.path}
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                      `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
                         isActive
-                          ? "bg-gray-900 text-white"
-                          : "text-gray-700 hover:bg-gray-100"
+                          ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                       }`
                     }
                   >
@@ -111,10 +116,10 @@ const DashboardLayout = ({ title, children }) => {
             </div>
           </nav>
 
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-slate-200/60 p-4">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-slate-800 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
             >
               <LogOut size={16} />
               Logout
@@ -122,17 +127,20 @@ const DashboardLayout = ({ title, children }) => {
           </div>
         </aside>
 
+        {/* Main Content */}
         <main className="flex-1">
-          <header className="border-b border-gray-200 bg-white px-6 py-4">
+          <header className="border-b border-slate-200/60 bg-white px-6 py-4 shadow-sm">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-                <p className="mt-1 text-sm text-gray-600">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                  {title}
+                </h1>
+                <p className="mt-1 text-sm text-slate-600">
                   Welcome, {auth?.email || "User"}
                 </p>
               </div>
 
-              <div className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
+              <div className="inline-flex items-center rounded-xl bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 ring-1 ring-blue-200">
                 {auth?.role || "-"}
               </div>
             </div>
