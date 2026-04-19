@@ -1,0 +1,97 @@
+.resources-page {
+  padding: 24px;
+  background: #f4f7fb;
+  min-height: 100vh;
+}
+
+.resources-page h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1f2937;
+}
+
+.resource-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.resource-card h2 {
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+.resource-form,
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.resource-form input,
+.resource-form select,
+.filter-grid input,
+.filter-grid select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.resource-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.btn-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-group button,
+.resource-table button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+}
+
+.cancel-btn {
+  background: #6b7280 !important;
+}
+
+.delete-btn {
+  background: #dc2626 !important;
+  margin-left: 8px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.resource-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.resource-table th,
+.resource-table td {
+  border: 1px solid #e5e7eb;
+  padding: 12px;
+  text-align: left;
+}
+
+.resource-table th {
+  background: #f3f4f6;
+  color: #111827;
+}

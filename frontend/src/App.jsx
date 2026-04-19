@@ -20,6 +20,8 @@ import NotificationsPage from "./pages/dashboard/NotificationsPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
 
+import ResourcesPage from "./pages/admin/ResourcesPage";
+
 function App() {
   return (
     <BrowserRouter>
@@ -129,6 +131,8 @@ function App() {
 
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="*" element={<NotFoundPage />} />
+
+        <Route path="/admin/resources" element={<ResourcesPage />} />
       </Routes>
     </BrowserRouter>
   );
