@@ -8,6 +8,8 @@ const CreateTicketPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -24,13 +26,69 @@ const CreateTicketPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (selectedFiles.length + files.length > 3) {
+      setError("Maximum of 3 images allowed");
+      return;
+    }
+
+    files.forEach((file) => {
+      if (!file.type.startsWith("image/")) {
+        setError("Only image files are allowed");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError("File size exceeds 5MB limit");
+        return;
+      }
+    });
+
+    setSelectedFiles((prev) => [...prev, ...files]);
+    setError(null);
+  };
+
+  const handleRemoveFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadAttachments = async (ticketId) => {
+    if (selectedFiles.length === 0) return;
+
+    setUploading(true);
+    for (const file of selectedFiles) {
+      try {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Data = reader.result.split(',')[1];
+          await ticketApi.uploadAttachment(ticketId, {
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            fileData: base64Data,
+          });
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("Failed to upload attachment:", err);
+      }
+    }
+    setUploading(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      await ticketApi.createTicket(formData);
+      const ticket = await ticketApi.createTicket(formData);
+      
+      // Upload attachments after ticket is created
+      if (selectedFiles.length > 0) {
+        await uploadAttachments(ticket.id);
+      }
+      
       setSuccess(true);
       setTimeout(() => {
         navigate("/tickets");
@@ -211,6 +269,53 @@ const CreateTicketPage = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Phone number or email for follow-up"
               />
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <label
+                htmlFor="images"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Images (Optional)
+              </label>
+              <input
+                type="file"
+                id="images"
+                accept="image/*"
+                multiple
+                onChange={handleFileSelect}
+                disabled={selectedFiles.length >= 3 || loading}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Max 3 images, 5MB per image
+              </p>
+
+              {/* Image Previews */}
+              {selectedFiles.length > 0 && (
+                <div className="mt-4 grid grid-cols-3 gap-4">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(index)}
+                        className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 w-6 h-6 flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                      <p className="text-xs text-gray-500 mt-1 truncate">
+                        {file.name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Buttons */}
