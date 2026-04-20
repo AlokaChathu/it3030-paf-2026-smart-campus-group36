@@ -15,6 +15,8 @@ const TicketDetailPage = () => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [selectedTechnicianId, setSelectedTechnicianId] = useState("");
 
   const auth = JSON.parse(localStorage.getItem("smart-campus-auth") || "{}");
   const userRole = auth?.role || "USER";
@@ -163,6 +165,24 @@ const TicketDetailPage = () => {
       fetchComments();
     } catch (err) {
       setError("Failed to delete comment. Please try again.");
+    }
+  };
+
+  const handleAssignTechnician = async () => {
+    if (!selectedTechnicianId) {
+      setError("Please select a technician");
+      return;
+    }
+    setAssigning(true);
+    try {
+      await ticketApi.assignTechnician(id, selectedTechnicianId);
+      fetchTicket();
+      setSelectedTechnicianId("");
+      setError(null);
+    } catch (err) {
+      setError("Failed to assign technician. Please try again.");
+    } finally {
+      setAssigning(false);
     }
   };
 
@@ -470,6 +490,34 @@ const TicketDetailPage = () => {
                   </button>
                 )}
               </div>
+
+              {/* Technician Assignment - Admin Only */}
+              {userRole === "ADMIN" && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Assign Technician
+                  </h3>
+                  <div className="flex space-x-4">
+                    <input
+                      type="text"
+                      value={selectedTechnicianId}
+                      onChange={(e) => setSelectedTechnicianId(e.target.value)}
+                      placeholder="Enter Technician User ID"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button
+                      onClick={handleAssignTechnician}
+                      disabled={assigning || !selectedTechnicianId}
+                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
+                    >
+                      {assigning ? "Assigning..." : "Assign"}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Enter the technician's user ID to assign this ticket to them.
+                  </p>
+                </div>
+              )}
 
               {/* Attachments Section */}
               <div className="mt-6 pt-6 border-t border-gray-200">
