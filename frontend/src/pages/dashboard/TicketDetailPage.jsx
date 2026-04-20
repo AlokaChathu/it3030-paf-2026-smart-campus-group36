@@ -16,9 +16,9 @@ const TicketDetailPage = () => {
   const [newComment, setNewComment] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+  const auth = JSON.parse(localStorage.getItem("smart-campus-auth") || "{}");
   const userRole = auth?.role || "USER";
-  const userId = auth?.id;
+  const userId = auth?.userId;
 
   useEffect(() => {
     fetchTicket();
