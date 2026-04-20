@@ -67,7 +67,7 @@ const TicketsListPage = () => {
     }
   };
 
-  const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+  const auth = JSON.parse(localStorage.getItem("smart-campus-auth") || "{}");
   const userRole = auth?.role || "USER";
 
   return (
