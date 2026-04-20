@@ -97,4 +97,70 @@ export const ticketApi = {
     );
     return response.data;
   },
+
+  // Upload attachment
+  uploadAttachment: async (ticketId, attachmentData) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/tickets/${ticketId}/attachments`,
+      attachmentData,
+      getAuthHeaders()
+    );
+    return response.data;
+  },
+
+  // Get attachments for ticket
+  getAttachments: async (ticketId) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/api/tickets/${ticketId}/attachments`,
+      getAuthHeaders()
+    );
+    return response.data;
+  },
+
+  // Delete attachment
+  deleteAttachment: async (ticketId, attachmentId) => {
+    const response = await axios.delete(
+      `${API_BASE_URL}/api/tickets/${ticketId}/attachments/attachment/${attachmentId}`,
+      getAuthHeaders()
+    );
+    return response.data;
+  },
+
+  // Add comment
+  addComment: async (ticketId, content) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/tickets/${ticketId}/comments`,
+      { content },
+      getAuthHeaders()
+    );
+    return response.data;
+  },
+
+  // Get comments for ticket
+  getComments: async (ticketId) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/api/tickets/${ticketId}/comments`,
+      getAuthHeaders()
+    );
+    return response.data;
+  },
+
+  // Update comment
+  updateComment: async (ticketId, commentId, content) => {
+    const response = await axios.put(
+      `${API_BASE_URL}/api/tickets/${ticketId}/comments/${commentId}`,
+      { content },
+      getAuthHeaders()
+    );
+    return response.data;
+  },
+
+  // Delete comment
+  deleteComment: async (ticketId, commentId) => {
+    const response = await axios.delete(
+      `${API_BASE_URL}/api/tickets/${ticketId}/comments/${commentId}`,
+      getAuthHeaders()
+    );
+    return response.data;
+  },
 };

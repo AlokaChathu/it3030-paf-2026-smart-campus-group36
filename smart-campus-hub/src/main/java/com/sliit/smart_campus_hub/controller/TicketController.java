@@ -16,7 +16,9 @@ import com.sliit.smart_campus_hub.dto.CreateTicketRequest;
 import com.sliit.smart_campus_hub.dto.UpdateStatusRequest;
 import com.sliit.smart_campus_hub.dto.UpdateTicketRequest;
 import com.sliit.smart_campus_hub.enums.TicketStatus;
+import com.sliit.smart_campus_hub.enums.EventType;
 import com.sliit.smart_campus_hub.model.Ticket;
+import com.sliit.smart_campus_hub.service.NotificationService;
 import com.sliit.smart_campus_hub.service.TicketService;
 import com.sliit.smart_campus_hub.service.UserService;
 
@@ -31,6 +33,9 @@ public class TicketController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private String getUserId(UserDetails userDetails) {
         return userService.findByEmail(userDetails.getUsername())
@@ -195,6 +200,23 @@ public class TicketController {
             }
             
             Ticket updatedTicket = ticketService.updateTicketStatus(id, request.getStatus(), request.getRejectionReason());
+            
+            // Trigger notification to ticket owner
+            notificationService.create(
+                    updatedTicket.getCreatedBy(),
+                    "Ticket #" + updatedTicket.getId().substring(0, 8) + " status changed to " + request.getStatus(),
+                    EventType.TICKET_STATUS
+            );
+            
+            // If technician is assigned, also notify them
+            if (updatedTicket.getAssignedTo() != null && !updatedTicket.getAssignedTo().equals(updatedTicket.getCreatedBy())) {
+                notificationService.create(
+                        updatedTicket.getAssignedTo(),
+                        "Assigned ticket #" + updatedTicket.getId().substring(0, 8) + " status changed to " + request.getStatus(),
+                        EventType.TICKET_STATUS
+                );
+            }
+            
             return ResponseEntity.ok(updatedTicket);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
@@ -213,6 +235,21 @@ public class TicketController {
             }
             
             Ticket updatedTicket = ticketService.assignTechnician(id, request.getTechnicianId());
+            
+            // Trigger notification to assigned technician
+            notificationService.create(
+                    request.getTechnicianId(),
+                    "You have been assigned to ticket #" + updatedTicket.getId().substring(0, 8),
+                    EventType.TICKET_STATUS
+            );
+            
+            // Trigger notification to ticket owner
+            notificationService.create(
+                    updatedTicket.getCreatedBy(),
+                    "Ticket #" + updatedTicket.getId().substring(0, 8) + " has been assigned to a technician",
+                    EventType.TICKET_STATUS
+            );
+            
             return ResponseEntity.ok(updatedTicket);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));

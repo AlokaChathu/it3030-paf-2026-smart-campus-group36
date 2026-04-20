@@ -70,6 +70,13 @@ public class TicketService {
         }
         
         Ticket ticket = ticketOpt.get();
+        TicketStatus currentStatus = ticket.getStatus();
+        
+        // Validate status workflow
+        if (!isValidStatusTransition(currentStatus, status)) {
+            throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + status);
+        }
+        
         ticket.setStatus(status);
         ticket.setUpdatedAt(new Date());
         if (rejectionReason != null) {
@@ -77,6 +84,28 @@ public class TicketService {
         }
         
         return ticketRepository.save(ticket);
+    }
+    
+    private boolean isValidStatusTransition(TicketStatus from, TicketStatus to) {
+        // OPEN can go to IN_PROGRESS, REJECTED
+        // IN_PROGRESS can go to RESOLVED, REJECTED
+        // RESOLVED can go to CLOSED or back to IN_PROGRESS
+        // REJECTED and CLOSED are final states
+        
+        if (from == TicketStatus.OPEN) {
+            return to == TicketStatus.IN_PROGRESS || to == TicketStatus.REJECTED;
+        }
+        if (from == TicketStatus.IN_PROGRESS) {
+            return to == TicketStatus.RESOLVED || to == TicketStatus.REJECTED;
+        }
+        if (from == TicketStatus.RESOLVED) {
+            return to == TicketStatus.CLOSED || to == TicketStatus.IN_PROGRESS;
+        }
+        if (from == TicketStatus.REJECTED || from == TicketStatus.CLOSED) {
+            return false;
+        }
+        
+        return false;
     }
     
     public Ticket assignTechnician(String id, String technicianId) {

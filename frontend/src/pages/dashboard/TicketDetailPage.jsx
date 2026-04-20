@@ -11,6 +11,10 @@ const TicketDetailPage = () => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [attachments, setAttachments] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const auth = JSON.parse(localStorage.getItem("auth") || "{}");
   const userRole = auth?.role || "USER";
@@ -18,6 +22,8 @@ const TicketDetailPage = () => {
 
   useEffect(() => {
     fetchTicket();
+    fetchAttachments();
+    fetchComments();
   }, [id]);
 
   const fetchTicket = async () => {
@@ -42,6 +48,24 @@ const TicketDetailPage = () => {
     }
   };
 
+  const fetchAttachments = async () => {
+    try {
+      const data = await ticketApi.getAttachments(id);
+      setAttachments(data);
+    } catch (err) {
+      console.error("Failed to load attachments:", err);
+    }
+  };
+
+  const fetchComments = async () => {
+    try {
+      const data = await ticketApi.getComments(id);
+      setComments(data);
+    } catch (err) {
+      console.error("Failed to load comments:", err);
+    }
+  };
+
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -62,6 +86,83 @@ const TicketDetailPage = () => {
       navigate("/tickets");
     } catch (err) {
       setError("Failed to delete ticket. Please try again.");
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (attachments.length >= 3) {
+      setError("Maximum of 3 attachments allowed per ticket");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files are allowed");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File size exceeds 5MB limit");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result.split(',')[1];
+        await ticketApi.uploadAttachment(id, {
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+          fileData: base64Data,
+        });
+        fetchAttachments();
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setError("Failed to upload attachment. Please try again.");
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId) => {
+    if (!window.confirm("Are you sure you want to delete this attachment?")) {
+      return;
+    }
+    try {
+      await ticketApi.deleteAttachment(id, attachmentId);
+      fetchAttachments();
+    } catch (err) {
+      setError("Failed to delete attachment. Please try again.");
+    }
+  };
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    try {
+      await ticketApi.addComment(id, newComment);
+      setNewComment("");
+      fetchComments();
+    } catch (err) {
+      setError("Failed to add comment. Please try again.");
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+    try {
+      await ticketApi.deleteComment(id, commentId);
+      fetchComments();
+    } catch (err) {
+      setError("Failed to delete comment. Please try again.");
     }
   };
 
@@ -368,6 +469,98 @@ const TicketDetailPage = () => {
                     Delete Ticket
                   </button>
                 )}
+              </div>
+
+              {/* Attachments Section */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Attachments ({attachments.length}/3)
+                </h3>
+                {attachments.length < 3 && (
+                  <div className="mb-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Max 3 images, 5MB per image
+                    </p>
+                  </div>
+                )}
+                {attachments.length > 0 && (
+                  <div className="grid grid-cols-3 gap-4">
+                    {attachments.map((attachment) => (
+                      <div key={attachment.id} className="relative">
+                        <img
+                          src={`data:${attachment.fileType};base64,${attachment.fileData}`}
+                          alt={attachment.fileName}
+                          className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                        />
+                        {(attachment.uploadedBy === userId || userRole === "ADMIN") && (
+                          <button
+                            onClick={() => handleDeleteAttachment(attachment.id)}
+                            className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Comments Section */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Comments ({comments.length})
+                </h3>
+                <form onSubmit={handleAddComment} className="mb-4">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    rows={3}
+                    placeholder="Add a comment..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <button
+                    type="submit"
+                    className="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+                  >
+                    Add Comment
+                  </button>
+                </form>
+                <div className="space-y-4">
+                  {comments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            User ID: {comment.userId.substring(0, 8)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(comment.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        {(comment.userId === userId || userRole === "ADMIN") && (
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-gray-700">{comment.content}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </>
           )}
