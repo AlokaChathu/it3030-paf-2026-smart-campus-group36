@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ticketApi } from "../../api/ticketApi";
-import DashboardLayout from "../../components/DashboardLayout";
+import DashboardLayout from "../../components/layout/DashboardLayout";
 
 const TicketsListPage = () => {
   const [tickets, setTickets] = useState([]);

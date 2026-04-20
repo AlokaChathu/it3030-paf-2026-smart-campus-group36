@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ticketApi } from "../../api/ticketApi";
-import DashboardLayout from "../../components/DashboardLayout";
+import DashboardLayout from "../../components/layout/DashboardLayout";
 
 const TicketDetailPage = () => {
   const { id } = useParams();
