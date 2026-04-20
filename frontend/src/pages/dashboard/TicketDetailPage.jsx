@@ -19,6 +19,9 @@ const TicketDetailPage = () => {
   const [assigning, setAssigning] = useState(false);
   const [selectedTechnicianId, setSelectedTechnicianId] = useState("");
   const [technicians, setTechnicians] = useState([]);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const auth = JSON.parse(localStorage.getItem("smart-campus-auth") || "{}");
   const userRole = auth?.role || "USER";
@@ -197,6 +200,32 @@ const TicketDetailPage = () => {
       setError("Failed to assign technician. Please try again.");
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!selectedStatus) {
+      setError("Please select a status");
+      return;
+    }
+    if (selectedStatus === "REJECTED" && !rejectionReason.trim()) {
+      setError("Rejection reason is required when rejecting a ticket");
+      return;
+    }
+    setUpdatingStatus(true);
+    try {
+      await ticketApi.updateTicketStatus(id, {
+        status: selectedStatus,
+        rejectionReason: rejectionReason || null,
+      });
+      fetchTicket();
+      setSelectedStatus("");
+      setRejectionReason("");
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update status. Please try again.");
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -534,6 +563,58 @@ const TicketDetailPage = () => {
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
                     Select a technician from the dropdown to assign this ticket to them.
+                  </p>
+                </div>
+              )}
+
+              {/* Status Update - Technician or Admin */}
+              {(userRole === "TECHNICIAN" || userRole === "ADMIN") && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Update Status
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        New Status
+                      </label>
+                      <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="">Select a status...</option>
+                        <option value="OPEN">OPEN</option>
+                        <option value="IN_PROGRESS">IN_PROGRESS</option>
+                        <option value="RESOLVED">RESOLVED</option>
+                        <option value="CLOSED">CLOSED</option>
+                        {userRole === "ADMIN" && <option value="REJECTED">REJECTED</option>}
+                      </select>
+                    </div>
+                    {selectedStatus === "REJECTED" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Rejection Reason
+                        </label>
+                        <textarea
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                          placeholder="Enter reason for rejection..."
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                          rows={3}
+                        />
+                      </div>
+                    )}
+                    <button
+                      onClick={handleUpdateStatus}
+                      disabled={updatingStatus || !selectedStatus}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+                    >
+                      {updatingStatus ? "Updating..." : "Update Status"}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Workflow: OPEN → IN_PROGRESS → RESOLVED → CLOSED (REJECTED by admin only)
                   </p>
                 </div>
               )}
