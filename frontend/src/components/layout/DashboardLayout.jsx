@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, User, Bell, Users, Shield, LogOut } from "lucide-react";
+import { LayoutDashboard, User, Bell, Users, Shield, LogOut, Ticket } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const DashboardLayout = ({ title, children }) => {
@@ -13,6 +13,11 @@ const DashboardLayout = ({ title, children }) => {
       name: "Dashboard",
       path: "/user/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      name: "Tickets",
+      path: "/tickets",
+      icon: Ticket,
     },
     {
       name: "Profile",
@@ -31,6 +36,11 @@ const DashboardLayout = ({ title, children }) => {
       name: "Dashboard",
       path: "/admin/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      name: "Tickets",
+      path: "/tickets",
+      icon: Ticket,
     },
     {
       name: "Users",
