@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ticketApi } from "../../api/ticketApi";
+import { userApi } from "../../api/userApi";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 
 const TicketDetailPage = () => {
@@ -17,6 +18,7 @@ const TicketDetailPage = () => {
   const [uploading, setUploading] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [selectedTechnicianId, setSelectedTechnicianId] = useState("");
+  const [technicians, setTechnicians] = useState([]);
 
   const auth = JSON.parse(localStorage.getItem("smart-campus-auth") || "{}");
   const userRole = auth?.role || "USER";
@@ -26,7 +28,10 @@ const TicketDetailPage = () => {
     fetchTicket();
     fetchAttachments();
     fetchComments();
-  }, [id]);
+    if (userRole === "ADMIN") {
+      fetchTechnicians();
+    }
+  }, [id, userRole]);
 
   const fetchTicket = async () => {
     try {
@@ -65,6 +70,15 @@ const TicketDetailPage = () => {
       setComments(data);
     } catch (err) {
       console.error("Failed to load comments:", err);
+    }
+  };
+
+  const fetchTechnicians = async () => {
+    try {
+      const data = await userApi.getUsersByRole("TECHNICIAN");
+      setTechnicians(data);
+    } catch (err) {
+      console.error("Failed to load technicians:", err);
     }
   };
 
@@ -498,13 +512,18 @@ const TicketDetailPage = () => {
                     Assign Technician
                   </h3>
                   <div className="flex space-x-4">
-                    <input
-                      type="text"
+                    <select
                       value={selectedTechnicianId}
                       onChange={(e) => setSelectedTechnicianId(e.target.value)}
-                      placeholder="Enter Technician User ID"
                       className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    />
+                    >
+                      <option value="">Select a technician...</option>
+                      {technicians.map((technician) => (
+                        <option key={technician.id} value={technician.id}>
+                          {technician.fullName || technician.email} ({technician.email})
+                        </option>
+                      ))}
+                    </select>
                     <button
                       onClick={handleAssignTechnician}
                       disabled={assigning || !selectedTechnicianId}
@@ -514,7 +533,7 @@ const TicketDetailPage = () => {
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Enter the technician's user ID to assign this ticket to them.
+                    Select a technician from the dropdown to assign this ticket to them.
                   </p>
                 </div>
               )}

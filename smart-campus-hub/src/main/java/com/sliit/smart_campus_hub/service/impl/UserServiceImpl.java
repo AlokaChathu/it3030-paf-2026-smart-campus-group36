@@ -54,4 +54,9 @@ public class UserServiceImpl implements UserService {
         }
         return userOpt.get().getRole().name();
     }
+
+    @Override
+    public List<User> getUsersByRole(String role) {
+        return userRepository.findByRole_Name(role);
+    }
 }
