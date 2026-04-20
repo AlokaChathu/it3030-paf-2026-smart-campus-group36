@@ -3,7 +3,8 @@ import axios from "axios";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8090";
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
+  const authData = JSON.parse(localStorage.getItem("smart-campus-auth") || "{}");
+  const token = authData?.token;
   return {
     headers: {
       Authorization: `Bearer ${token}`,
