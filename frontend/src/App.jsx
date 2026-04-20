@@ -17,6 +17,9 @@ import UserDashboardPage from "./pages/dashboard/UserDashboardPage";
 import AdminDashboardPage from "./pages/dashboard/AdminDashboardPage";
 import ProfilePage from "./pages/dashboard/ProfilePage";
 import NotificationsPage from "./pages/dashboard/NotificationsPage";
+import TicketsListPage from "./pages/dashboard/TicketsListPage";
+import CreateTicketPage from "./pages/dashboard/CreateTicketPage";
+import TicketDetailPage from "./pages/dashboard/TicketDetailPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
 
@@ -96,6 +99,33 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER"]}>
               <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tickets"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER", "ADMIN"]}>
+              <TicketsListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tickets/create"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER", "ADMIN"]}>
+              <CreateTicketPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tickets/:id"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER", "ADMIN"]}>
+              <TicketDetailPage />
             </ProtectedRoute>
           }
         />

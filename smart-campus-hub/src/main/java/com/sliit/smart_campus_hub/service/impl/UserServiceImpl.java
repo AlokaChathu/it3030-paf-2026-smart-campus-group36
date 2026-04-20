@@ -45,4 +45,13 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String id) {
         userRepository.deleteById(id);
     }
+
+    @Override
+    public String getUserRole(String userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return null;
+        }
+        return userOpt.get().getRole().name();
+    }
 }
