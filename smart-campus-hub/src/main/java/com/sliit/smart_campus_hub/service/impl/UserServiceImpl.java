@@ -1,0 +1,48 @@
+package com.sliit.smart_campus_hub.service.impl;
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.sliit.smart_campus_hub.model.User;
+import com.sliit.smart_campus_hub.repository.UserRepository;
+import com.sliit.smart_campus_hub.service.UserService;
+
+import java.util.List;  
+
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+    
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+    
+    @Override
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+    
+    @Override
+    public Optional<User> findById(String id) {
+        return userRepository.findById(id);
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public void deleteUser(String id) {
+        userRepository.deleteById(id);
+    }
+}
