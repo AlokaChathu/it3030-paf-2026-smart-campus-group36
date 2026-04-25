@@ -76,6 +76,20 @@ export default function UserResourcesPage() {
     });
   };
 
+  const totalResources = resources.length;
+
+const activeResources = resources.filter(
+  (resource) => resource.status === "ACTIVE"
+).length;
+
+const outOfServiceResources = resources.filter(
+  (resource) => resource.status === "OUT_OF_SERVICE"
+).length;
+
+const labResources = resources.filter(
+  (resource) => resource.type === "LAB"
+).length;
+
   return (
     <DashboardLayout title="All Resources">
       <div className="resources-page">
@@ -142,6 +156,28 @@ export default function UserResourcesPage() {
             </button>
           </div>
         </section>
+
+        <section className="summary-cards-grid">
+  <div className="resource-summary-card">
+    <h3>{totalResources}</h3>
+    <p>Total Resources</p>
+  </div>
+
+  <div className="resource-summary-card active-card">
+    <h3>{activeResources}</h3>
+    <p>Active Resources</p>
+  </div>
+
+  <div className="resource-summary-card danger-card">
+    <h3>{outOfServiceResources}</h3>
+    <p>Out of Service</p>
+  </div>
+
+  <div className="resource-summary-card lab-card">
+    <h3>{labResources}</h3>
+    <p>Labs</p>
+  </div>
+</section>
 
         <section className="table-card">
           <h2>All Resources</h2>
