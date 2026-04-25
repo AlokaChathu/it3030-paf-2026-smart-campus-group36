@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,54 +46,55 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
+    /** When false, demo mode: skip OTP email and mark email verified so login works without mail. */
+    @Value("${app.mail.enabled:false}")
+    private boolean mailEnabled;
+
     @PostMapping("/register")
-public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
-    // Check if email already exists
-    if (userService.existsByEmail(request.getEmail())) {
-        return ResponseEntity.badRequest().body(new ApiResponse(false, "Email is already taken!"));
-    }
-
-    // Determine role (default USER if not provided or invalid)
-    Role role = Role.USER;
-    if (request.getRole() != null && !request.getRole().isBlank()) {
-        try {
-            role = Role.valueOf(request.getRole().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "Invalid role. Allowed: USER, TECHNICIAN, MANAGER, ADMIN"));
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
+        // Check if email already exists
+        if (userService.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Email is already taken!"));
         }
-    }
 
-    // Generate OTP (6 digits)
-    String otp = String.format("%06d", new Random().nextInt(999999));
-    LocalDateTime otpExpiry = LocalDateTime.now().plusMinutes(10);
+        // Determine role (default USER if not provided or invalid)
+        Role role = Role.USER;
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            try {
+                role = Role.valueOf(request.getRole().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(new ApiResponse(false, "Invalid role. Allowed: USER, TECHNICIAN, MANAGER, ADMIN"));
+            }
+        }
 
-    // Create new user
-    User user = User.builder()
-            .email(request.getEmail())
-            .password(passwordEncoder.encode(request.getPassword()))
-            .name(request.getName())
-            .role(role)
-            .provider(AuthProvider.LOCAL)
-            .emailVerified(false)
-            .otp(otp)
-            .otpExpiry(otpExpiry)
-            .createdAt(new java.util.Date())
-            .updatedAt(new java.util.Date())
-            .build();
+        final boolean demoSkipEmail = !mailEnabled;
+        final String otp = demoSkipEmail ? null : String.format("%06d", new Random().nextInt(999999));
+        final LocalDateTime otpExpiry = demoSkipEmail ? null : LocalDateTime.now().plusMinutes(10);
 
-    userService.saveUser(user);
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .name(request.getName())
+                .role(role)
+                .provider(AuthProvider.LOCAL)
+                .emailVerified(demoSkipEmail)
+                .otp(otp)
+                .otpExpiry(otpExpiry)
+                .createdAt(new java.util.Date())
+                .updatedAt(new java.util.Date())
+                .build();
 
-    // Send OTP email
-    try {
+        userService.saveUser(user);
+
+        if (demoSkipEmail) {
+            return ResponseEntity.ok(new ApiResponse(true,
+                    "Registration successful. Demo mode (mail disabled): you can log in without OTP verification."));
+        }
+
+        // Mail enabled: send OTP; failures are handled inside EmailService (logs OTP, does not throw).
         emailService.sendOtpEmail(request.getEmail(), otp);
-    } catch (Exception e) {
-        System.err.println("Failed to send OTP email: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(false, "User registered but failed to send OTP. Please contact support."));
+        return ResponseEntity.ok(new ApiResponse(true, "Registration successful. Check your email for the OTP."));
     }
-
-    return ResponseEntity.ok(new ApiResponse(true, "Registration successful. OTP sent to your email."));
-}
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody OtpVerificationRequest request) {
@@ -171,12 +172,8 @@ public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordReques
     user.setResetOtpExpiry(expiry);
     userService.saveUser(user);
     
-    try {
-        emailService.sendPasswordResetOtp(request.getEmail(), otp);
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(false, "Failed to send OTP. Try again later."));
-    }
+    // Service handles mail-failure fallback by logging OTP to console.
+    emailService.sendPasswordResetOtp(request.getEmail(), otp);
     return ResponseEntity.ok(new ApiResponse(true, "Password reset OTP sent to your email"));
 }
 
