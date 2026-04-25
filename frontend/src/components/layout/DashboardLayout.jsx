@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, User, Bell, Users, Shield, LogOut } from "lucide-react";
+import { LayoutDashboard, User, Bell, Users, Shield, LogOut, CalendarCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const DashboardLayout = ({ title, children }) => {
@@ -24,6 +24,16 @@ const DashboardLayout = ({ title, children }) => {
       path: "/user/notifications",
       icon: Bell,
     },
+    {
+      name: "New Booking",
+      path: "/user/bookings/new",
+      icon: CalendarCheck,
+    },
+    {
+      name: "My Bookings",
+      path: "/user/bookings",
+      icon: CalendarCheck,
+    },
   ];
 
   const adminLinks = [
@@ -41,6 +51,11 @@ const DashboardLayout = ({ title, children }) => {
       name: "Notifications",
       path: "/admin/notifications",
       icon: Bell,
+    },
+    {
+      name: "Booking Management",
+      path: "/admin/bookings",
+      icon: CalendarCheck,
     },
     {
       name: "Profile",

@@ -19,6 +19,9 @@ import ProfilePage from "./pages/dashboard/ProfilePage";
 import NotificationsPage from "./pages/dashboard/NotificationsPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
+import BookingFormPage from "./pages/booking/BookingFormPage";
+import MyBookingsPage from "./pages/booking/MyBookingsPage";
+import AdminBookingManagementPage from "./pages/booking/AdminBookingManagementPage";
 
 function App() {
   return (
@@ -101,10 +104,37 @@ function App() {
         />
 
         <Route
+          path="/user/bookings/new"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
+              <BookingFormPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/bookings"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
+              <MyBookingsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/admin/dashboard"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/bookings"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminBookingManagementPage />
             </ProtectedRoute>
           }
         />
