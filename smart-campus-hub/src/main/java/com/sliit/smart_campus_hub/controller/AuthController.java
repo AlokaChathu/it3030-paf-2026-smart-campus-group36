@@ -199,6 +199,10 @@ public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordWithOtpR
     user.setPassword(passwordEncoder.encode(request.getNewPassword()));
     user.setResetOtp(null);
     user.setResetOtpExpiry(null);
+    // In demo flow, treat successful reset OTP verification as account verification too.
+    user.setEmailVerified(true);
+    user.setOtp(null);
+    user.setOtpExpiry(null);
     userService.saveUser(user);
     
     return ResponseEntity.ok(new ApiResponse(true, "Password reset successfully. You can now log in with your new password."));
