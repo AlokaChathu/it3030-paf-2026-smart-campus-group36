@@ -1,91 +1,127 @@
 import { useEffect, useState } from "react";
 import {
-  getResources,
   createResource,
-  updateResource,
   deleteResource,
+  getAllResources,
+  searchResources,
+  updateResource,
 } from "../../api/resourceApi";
+import DashboardLayout from "../../components/layout/DashboardLayout";
 import "./ResourcesPage.css";
 
-const initialForm = {
+const emptyForm = {
   name: "",
-  type: "LAB",
+  type: "",
   capacity: "",
   location: "",
-  availabilityStart: "",
-  availabilityEnd: "",
+  availableFrom: "08:00",
+  availableTo: "17:00",
   status: "ACTIVE",
+  description: "",
 };
 
-function ResourcesPage() {
+export default function ResourcesPage() {
   const [resources, setResources] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [message, setMessage] = useState("");
   const [filters, setFilters] = useState({
+    keyword: "",
     type: "",
-    capacity: "",
-    location: "",
     status: "",
+    location: "",
+    minCapacity: "",
   });
 
-  const fetchResources = async () => {
-    try {
-      const params = {};
-      if (filters.type) params.type = filters.type;
-      if (filters.capacity) params.capacity = filters.capacity;
-      if (filters.location) params.location = filters.location;
-      if (filters.status) params.status = filters.status;
+  useEffect(() => {
+    loadResources();
+  }, []);
 
-      const res = await getResources(params);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleSearch();
+    }, 250);
+
+    return () => clearTimeout(timeoutId);
+  }, [filters]);
+
+  const loadResources = async () => {
+    try {
+      const res = await getAllResources();
       setResources(res.data);
     } catch (error) {
-      console.error("Error fetching resources:", error);
+      setMessage("Failed to load resources");
     }
   };
 
-  useEffect(() => {
-    fetchResources();
-  }, []);
-
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: name === "capacity" ? value.replace(/\D/g, "") : value,
-    }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
+
+  const handleSearch = async () => {
+    try {
+      const query = {};
+      if (filters.keyword.trim()) query.keyword = filters.keyword.trim();
+      if (filters.type) query.type = filters.type;
+      if (filters.status) query.status = filters.status;
+      if (filters.location.trim()) query.location = filters.location.trim();
+      if (filters.minCapacity !== "") query.minCapacity = Number(filters.minCapacity);
+
+      const res =
+        Object.keys(query).length === 0 ? await getAllResources() : await searchResources(query);
+      setResources(res.data);
+      setMessage("");
+    } catch (error) {
+      setMessage(error.response?.data?.message || "Search failed");
+    }
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      keyword: "",
+      type: "",
+      status: "",
+      location: "",
+      minCapacity: "",
+    });
+    setMessage("");
+  };
+
+  const resetForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      ...form,
-      capacity: Number(form.capacity),
-    };
+    if (Number(form.capacity) <= 0) {
+      setMessage("Capacity must be greater than 0");
+      return;
+    }
 
     try {
+      const payload = {
+        ...form,
+        capacity: Number(form.capacity),
+      };
+
       if (editingId) {
         await updateResource(editingId, payload);
-        alert("Resource updated successfully");
+        setMessage("Resource updated successfully");
       } else {
         await createResource(payload);
-        alert("Resource added successfully");
+        setMessage("Resource created successfully");
       }
 
-      setForm(initialForm);
-      setEditingId(null);
-      fetchResources();
+      resetForm();
+      loadResources();
     } catch (error) {
-      console.error("Error saving resource:", error);
-      alert("Failed to save resource");
+      setMessage(error.response?.data?.message || "Operation failed");
     }
   };
 
@@ -96,228 +132,207 @@ function ResourcesPage() {
       type: resource.type,
       capacity: resource.capacity,
       location: resource.location,
-      availabilityStart: resource.availabilityStart || "",
-      availabilityEnd: resource.availabilityEnd || "",
+      availableFrom: resource.availableFrom,
+      availableTo: resource.availableTo,
       status: resource.status,
+      description: resource.description || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id) => {
-    const confirmed = window.confirm("Are you sure you want to delete this resource?");
-    if (!confirmed) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete this resource?");
+    if (!confirmDelete) return;
 
     try {
       await deleteResource(id);
-      alert("Resource deleted successfully");
-      fetchResources();
+      setMessage("Resource deleted successfully");
+      loadResources();
     } catch (error) {
-      console.error("Error deleting resource:", error);
-      alert("Failed to delete resource");
+      setMessage("Delete failed");
     }
-  };
-
-  const applyFilters = () => {
-    fetchResources();
-  };
-
-  const clearFilters = async () => {
-    const cleared = {
-      type: "",
-      capacity: "",
-      location: "",
-      status: "",
-    };
-    setFilters(cleared);
-
-    try {
-      const res = await getResources();
-      setResources(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setForm(initialForm);
   };
 
   return (
-    <div className="resources-page">
-      <h1>Facilities Catalogue & Resource Management</h1>
-
-      <div className="resource-card">
-        <h2>{editingId ? "Edit Resource" : "Add New Resource"}</h2>
-
-        <form onSubmit={handleSubmit} className="resource-form">
-          <input
-            type="text"
-            name="name"
-            placeholder="Resource Name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-
-          <select name="type" value={form.type} onChange={handleChange}>
-            <option value="LECTURE_HALL">Lecture Hall</option>
-            <option value="LAB">Lab</option>
-            <option value="MEETING_ROOM">Meeting Room</option>
-            <option value="PROJECTOR">Projector</option>
-            <option value="CAMERA">Camera</option>
-            <option value="OTHER">Other</option>
-          </select>
-
-          <input
-            type="number"
-            name="capacity"
-            placeholder="Capacity"
-            value={form.capacity}
-            onChange={handleChange}
-            required
-          />
-
-          <input
-            type="text"
-            name="location"
-            placeholder="Location"
-            value={form.location}
-            onChange={handleChange}
-            required
-          />
-
+    <DashboardLayout title="Resource Management">
+      <div className="resources-page">
+        <div className="resources-header">
           <div>
-            <label>Availability Start</label>
-            <input
-              type="time"
-              name="availabilityStart"
-              value={form.availabilityStart}
-              onChange={handleChange}
-            />
+            <h1>Resource Management</h1>
+            <p>
+              Manage campus facilities and assets with a clean and organized
+              admin workspace.
+            </p>
+            
           </div>
-
-          <div>
-            <label>Availability End</label>
-            <input
-              type="time"
-              name="availabilityEnd"
-              value={form.availabilityEnd}
-              onChange={handleChange}
-            />
+          <div className="summary-card">
+            <h3>{resources.length}</h3>
+            <span>Total Resources</span>
           </div>
+        </div>
 
-          <select name="status" value={form.status} onChange={handleChange}>
-            <option value="ACTIVE">Active</option>
-            <option value="OUT_OF_SERVICE">Out of Service</option>
-          </select>
+        {message && <div className="message-box">{message}</div>}
 
-          <div className="btn-group">
-            <button type="submit">{editingId ? "Update Resource" : "Add Resource"}</button>
-            {editingId && (
-              <button type="button" className="cancel-btn" onClick={cancelEdit}>
-                Cancel
+        <section className="resource-form-card">
+          <h2>{editingId ? "Update Resource" : "Add New Resource"}</h2>
+          <p className="section-note">Fill in the resource details and save changes</p>
+
+          <form onSubmit={handleSubmit} className="resource-form">
+            <input
+              name="name"
+              placeholder="Resource Name"
+              value={form.name}
+              onChange={handleChange}
+              required
+            />
+
+            <select name="type" value={form.type} onChange={handleChange}>
+              <option value="">Select Resource Type</option>
+              <option value="LECTURE_HALL">Lecture Hall</option>
+              <option value="LAB">Lab</option>
+              <option value="MEETING_ROOM">Meeting Room</option>
+              <option value="PROJECTOR">Projector</option>
+              <option value="CAMERA">Camera</option>
+              <option value="OTHER">Other</option>
+            </select>
+
+            <input
+              name="location"
+              placeholder="Location"
+              value={form.location}
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              name="capacity"
+              type="number"
+              placeholder="Capacity"
+              value={form.capacity}
+              onChange={handleChange}
+              required
+            />
+
+            <select name="status" value={form.status} onChange={handleChange}>
+              <option value="ACTIVE">Available</option>
+              <option value="OUT_OF_SERVICE">Out of Service</option>
+            </select>
+
+            <div className="form-actions">
+              <button type="submit">{editingId ? "Update Resource" : "Add Resource"}</button>
+              <button type="button" className="secondary-btn" onClick={resetForm}>
+                Clear
               </button>
-            )}
+            </div>
+          </form>
+        </section>
+
+        <section className="filter-card">
+          <h2>Search & Filter</h2>
+
+          <div className="filter-grid">
+            <input
+              name="keyword"
+              placeholder="Search by name"
+              value={filters.keyword}
+              onChange={handleFilterChange}
+            />
+
+            <select name="type" value={filters.type} onChange={handleFilterChange}>
+              <option value="">All Types</option>
+              <option value="LECTURE_HALL">Lecture Hall</option>
+              <option value="LAB">Lab</option>
+              <option value="MEETING_ROOM">Meeting Room</option>
+              <option value="PROJECTOR">Projector</option>
+              <option value="CAMERA">Camera</option>
+              <option value="OTHER">Other</option>
+            </select>
+
+            <select name="status" value={filters.status} onChange={handleFilterChange}>
+              <option value="">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="OUT_OF_SERVICE">Out of Service</option>
+            </select>
+
+            <input
+              name="location"
+              placeholder="Location"
+              value={filters.location}
+              onChange={handleFilterChange}
+            />
+
+            <input
+              name="minCapacity"
+              type="number"
+              placeholder="Min capacity"
+              value={filters.minCapacity}
+              onChange={handleFilterChange}
+            />
           </div>
-        </form>
-      </div>
 
-      <div className="resource-card">
-        <h2>Search & Filter Resources</h2>
-        <div className="filter-grid">
-          <select name="type" value={filters.type} onChange={handleFilterChange}>
-            <option value="">All Types</option>
-            <option value="LECTURE_HALL">Lecture Hall</option>
-            <option value="LAB">Lab</option>
-            <option value="MEETING_ROOM">Meeting Room</option>
-            <option value="PROJECTOR">Projector</option>
-            <option value="CAMERA">Camera</option>
-            <option value="OTHER">Other</option>
-          </select>
+          <div className="filter-actions">
+            <button type="button" onClick={handleSearch}>
+              Search
+            </button>
+            <button type="button" className="secondary-btn" onClick={resetFilters}>
+              Reset
+            </button>
+          </div>
+        </section>
 
-          <input
-            type="number"
-            name="capacity"
-            placeholder="Minimum Capacity"
-            value={filters.capacity}
-            onChange={handleFilterChange}
-          />
+        <section className="table-card">
+          <h2>All Resources</h2>
+          <p className="section-note">View all resources currently available in the system</p>
 
-          <input
-            type="text"
-            name="location"
-            placeholder="Location"
-            value={filters.location}
-            onChange={handleFilterChange}
-          />
-
-          <select name="status" value={filters.status} onChange={handleFilterChange}>
-            <option value="">All Status</option>
-            <option value="ACTIVE">Active</option>
-            <option value="OUT_OF_SERVICE">Out of Service</option>
-          </select>
-        </div>
-
-        <div className="btn-group">
-          <button onClick={applyFilters}>Apply Filters</button>
-          <button className="cancel-btn" onClick={clearFilters}>Clear</button>
-        </div>
-      </div>
-
-      <div className="resource-card">
-        <h2>All Resources</h2>
-        <div className="table-wrapper">
-          <table className="resource-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Capacity</th>
-                <th>Location</th>
-                <th>Availability</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {resources.length > 0 ? (
-                resources.map((resource) => (
-                  <tr key={resource.id}>
-                    <td>{resource.id}</td>
-                    <td>{resource.name}</td>
-                    <td>{resource.type}</td>
-                    <td>{resource.capacity}</td>
-                    <td>{resource.location}</td>
-                    <td>
-                      {resource.availabilityStart || "-"} to {resource.availabilityEnd || "-"}
-                    </td>
-                    <td>{resource.status}</td>
-                    <td>
-                      <button onClick={() => handleEdit(resource)}>Edit</button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(resource.id)}
-                      >
-                        Delete
-                      </button>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Location</th>
+                  <th>Capacity</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resources.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="empty-row">
+                      No resources available
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="8" style={{ textAlign: "center" }}>
-                    No resources found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  resources.map((resource) => (
+                    <tr key={resource.id}>
+                      <td>{resource.id}</td>
+                      <td>{resource.name}</td>
+                      <td>{resource.type?.replaceAll("_", " ")}</td>
+                      <td>{resource.location}</td>
+                      <td>{resource.capacity}</td>
+                      <td>
+                        <span className={`status ${resource.status?.toLowerCase()}`}>
+                          {resource.status?.replaceAll("_", " ")}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button onClick={() => handleEdit(resource)}>Edit</button>
+                          <button className="danger-btn" onClick={() => handleDelete(resource.id)}>
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
-
-export default ResourcesPage;

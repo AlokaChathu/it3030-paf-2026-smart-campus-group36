@@ -132,7 +132,14 @@ function App() {
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="*" element={<NotFoundPage />} />
 
-        <Route path="/admin/resources" element={<ResourcesPage />} />
+        <Route
+          path="/admin/resources"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <ResourcesPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

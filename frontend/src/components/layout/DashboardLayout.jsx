@@ -1,5 +1,13 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, User, Bell, Users, Shield, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  User,
+  Bell,
+  Users,
+  Shield,
+  LogOut,
+  Building2,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const DashboardLayout = ({ title, children }) => {
@@ -31,6 +39,11 @@ const DashboardLayout = ({ title, children }) => {
       name: "Dashboard",
       path: "/admin/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      name: "Resources",
+      path: "/admin/resources",
+      icon: Building2,
     },
     {
       name: "Users",
