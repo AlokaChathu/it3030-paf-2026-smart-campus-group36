@@ -228,7 +228,7 @@ export default function ResourcesPage() {
         </section>
 
         <section className="filter-card">
-          <h2>Search & Filter</h2>
+          <h2>Search</h2>
 
           <div className="filter-grid">
             <input
@@ -271,9 +271,6 @@ export default function ResourcesPage() {
           </div>
 
           <div className="filter-actions">
-            <button type="button" onClick={handleSearch}>
-              Search
-            </button>
             <button type="button" className="secondary-btn" onClick={resetFilters}>
               Reset
             </button>

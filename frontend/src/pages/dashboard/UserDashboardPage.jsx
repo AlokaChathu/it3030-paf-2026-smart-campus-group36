@@ -33,6 +33,7 @@ const UserDashboardPage = () => {
           </p>
         </div>
       </div>
+      
 
       <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-5">
         <p className="text-sm text-gray-500">JWT Token</p>

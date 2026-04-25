@@ -21,7 +21,7 @@ import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
 
 import ResourcesPage from "./pages/admin/ResourcesPage";
-
+import UserResourcesPage from "./pages/user/UserResourcesPage";
 function App() {
   return (
     <BrowserRouter>
@@ -140,6 +140,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/user/resources" element={<UserResourcesPage />} />  
       </Routes>
     </BrowserRouter>
   );

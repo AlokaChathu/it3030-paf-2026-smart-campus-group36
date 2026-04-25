@@ -1,4 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
+
 import {
   LayoutDashboard,
   User,
@@ -21,6 +22,11 @@ const DashboardLayout = ({ title, children }) => {
       name: "Dashboard",
       path: "/user/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      name: "resources",
+      path: "/user/resources",
+      icon: Building2,
     },
     {
       name: "Profile",
@@ -128,6 +134,8 @@ const DashboardLayout = ({ title, children }) => {
               })}
             </div>
           </nav>
+
+     
 
           <div className="border-t border-slate-200/60 p-4">
             <button
