@@ -140,7 +140,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/user/resources" element={<UserResourcesPage />} />  
+        <Route
+  path="/user/resources"
+  element={
+    <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER"]}>
+      <UserResourcesPage />
+    </ProtectedRoute>
+  }
+/> 
       </Routes>
     </BrowserRouter>
   );

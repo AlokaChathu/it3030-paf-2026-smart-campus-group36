@@ -1,12 +1,27 @@
 const AUTH_STORAGE_KEY = "smart-campus-auth";
 
 export const saveAuthData = (data) => {
+  if (!data?.token) return;
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
 };
 
 export const getAuthData = () => {
-  const data = localStorage.getItem(AUTH_STORAGE_KEY);
-  return data ? JSON.parse(data) : null;
+  try {
+    const data = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!data) return null;
+
+    const parsed = JSON.parse(data);
+
+    if (!parsed?.token) {
+      clearAuthData();
+      return null;
+    }
+
+    return parsed;
+  } catch (error) {
+    clearAuthData();
+    return null;
+  }
 };
 
 export const clearAuthData = () => {
