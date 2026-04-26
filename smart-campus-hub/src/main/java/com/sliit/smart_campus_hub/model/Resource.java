@@ -1,59 +1,44 @@
 package com.sliit.smart_campus_hub.model;
 
-import java.util.Date;
-
+import com.sliit.smart_campus_hub.enums.ResourceStatus;
+import com.sliit.smart_campus_hub.enums.ResourceType;
+import jakarta.validation.constraints.*;
+import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.time.LocalTime;
 
-/**
- * Resource model for Module A - Facilities & Assets Catalogue
- * This is a placeholder for the resource model that will be fully implemented by another member.
- * Incident tickets can be linked to specific resources.
- */
-@Document(collection = "resources")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "resources")
 public class Resource {
-    
+
     @Id
     private String id;
-    
-    @Indexed(unique = true)
+
+    @NotBlank
     private String name;
-    
+
+    @NotNull
     private ResourceType type;
+
+    @Min(1)
+    private int capacity;
+
+    @NotBlank
     private String location;
-    private Integer capacity;
-    private String description;
+
+    @NotNull
+    private LocalTime availableFrom;
+
+    @NotNull
+    private LocalTime availableTo;
+
+    @NotNull
     private ResourceStatus status;
-    
-    private Date createdAt;
-    private Date updatedAt;
-    
-    // Availability windows (placeholder for future implementation)
-    private String availabilityInfo;
-    
-    public enum ResourceType {
-        LECTURE_HALL,
-        LAB,
-        MEETING_ROOM,
-        PROJECTOR,
-        CAMERA,
-        EQUIPMENT,
-        OTHER
-    }
-    
-    public enum ResourceStatus {
-        ACTIVE,
-        OUT_OF_SERVICE,
-        MAINTENANCE
-    }
+
+    private String description;
 }

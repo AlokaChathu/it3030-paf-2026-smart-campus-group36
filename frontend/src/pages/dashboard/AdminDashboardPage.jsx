@@ -40,6 +40,7 @@ const AdminDashboardPage = () => {
           {auth?.token || "-"}
         </p>
       </div>
+
     </DashboardLayout>
   );
 };

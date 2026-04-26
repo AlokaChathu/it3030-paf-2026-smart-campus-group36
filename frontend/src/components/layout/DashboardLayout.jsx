@@ -1,5 +1,15 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, User, Bell, Users, Shield, LogOut, Ticket, CalendarCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  User,
+  Bell,
+  Users,
+  Shield,
+  LogOut,
+  Ticket,
+  CalendarCheck,
+  Building2,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const DashboardLayout = ({ title, children }) => {
@@ -18,6 +28,11 @@ const DashboardLayout = ({ title, children }) => {
       name: "Tickets",
       path: "/tickets",
       icon: Ticket,
+    },
+    {
+      name: "Resources",
+      path: "/user/resources",
+      icon: Building2,
     },
     {
       name: "Profile",
@@ -53,6 +68,11 @@ const DashboardLayout = ({ title, children }) => {
       name: "Tickets",
       path: "/tickets",
       icon: Ticket,
+    },
+    {
+      name: "Resources",
+      path: "/admin/resources",
+      icon: Building2,
     },
     {
       name: "Users",
@@ -143,6 +163,8 @@ const DashboardLayout = ({ title, children }) => {
               })}
             </div>
           </nav>
+
+     
 
           <div className="border-t border-slate-200/60 p-4">
             <button

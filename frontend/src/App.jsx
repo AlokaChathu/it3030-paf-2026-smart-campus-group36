@@ -26,6 +26,8 @@ import BookingFormPage from "./pages/booking/BookingFormPage";
 import MyBookingsPage from "./pages/booking/MyBookingsPage";
 import AdminBookingManagementPage from "./pages/booking/AdminBookingManagementPage";
 
+import ResourcesPage from "./pages/admin/ResourcesPage";
+import UserResourcesPage from "./pages/user/UserResourcesPage";
 function App() {
   return (
     <BrowserRouter>
@@ -189,6 +191,23 @@ function App() {
 
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="*" element={<NotFoundPage />} />
+
+        <Route
+          path="/admin/resources"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <ResourcesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+  path="/user/resources"
+  element={
+    <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER"]}>
+      <UserResourcesPage />
+    </ProtectedRoute>
+  }
+/> 
       </Routes>
     </BrowserRouter>
   );
