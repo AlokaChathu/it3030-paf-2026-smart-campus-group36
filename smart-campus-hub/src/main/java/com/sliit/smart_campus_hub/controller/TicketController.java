@@ -13,11 +13,16 @@ import org.springframework.web.bind.annotation.*;
 import com.sliit.smart_campus_hub.dto.ApiResponse;
 import com.sliit.smart_campus_hub.dto.AssignTechnicianRequest;
 import com.sliit.smart_campus_hub.dto.CreateTicketRequest;
+import com.sliit.smart_campus_hub.dto.RateTicketRequest;
+import com.sliit.smart_campus_hub.dto.TechnicianRatingResponse;
+import com.sliit.smart_campus_hub.dto.TicketResponse;
+import com.sliit.smart_campus_hub.dto.TicketTrendResponse;
 import com.sliit.smart_campus_hub.dto.UpdateStatusRequest;
 import com.sliit.smart_campus_hub.dto.UpdateTicketRequest;
 import com.sliit.smart_campus_hub.enums.TicketStatus;
 import com.sliit.smart_campus_hub.enums.EventType;
 import com.sliit.smart_campus_hub.model.Ticket;
+import com.sliit.smart_campus_hub.service.AnalyticsService;
 import com.sliit.smart_campus_hub.service.NotificationService;
 import com.sliit.smart_campus_hub.service.TicketService;
 import com.sliit.smart_campus_hub.service.UserService;
@@ -37,10 +42,43 @@ public class TicketController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private AnalyticsService analyticsService;
+
     private String getUserId(UserDetails userDetails) {
         return userService.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
+    }
+
+    private TicketResponse convertToTicketResponse(Ticket ticket) {
+        TicketResponse response = new TicketResponse();
+        response.setId(ticket.getId());
+        response.setTitle(ticket.getTitle());
+        response.setDescription(ticket.getDescription());
+        response.setCategory(ticket.getCategory());
+        response.setPriority(ticket.getPriority());
+        response.setStatus(ticket.getStatus());
+        response.setResourceId(ticket.getResourceId());
+        response.setCreatedBy(ticket.getCreatedBy());
+        response.setAssignedTo(ticket.getAssignedTo());
+        response.setLocation(ticket.getLocation());
+        response.setContactDetails(ticket.getContactDetails());
+        response.setRejectionReason(ticket.getRejectionReason());
+        response.setRating(ticket.getRating());
+        response.setRatedBy(ticket.getRatedBy());
+        response.setRatedAt(ticket.getRatedAt());
+        response.setCreatedAt(ticket.getCreatedAt());
+        response.setUpdatedAt(ticket.getUpdatedAt());
+        
+        // Populate assignedToName
+        if (ticket.getAssignedTo() != null) {
+            userService.findById(ticket.getAssignedTo()).ifPresent(user -> {
+                response.setAssignedToName(user.getFullName());
+            });
+        }
+        
+        return response;
     }
 
     // Create ticket - authenticated users
@@ -73,7 +111,10 @@ public class TicketController {
     public ResponseEntity<?> getAllTickets() {
         try {
             List<Ticket> tickets = ticketService.getAllTickets();
-            return ResponseEntity.ok(tickets);
+            List<TicketResponse> response = tickets.stream()
+                .map(this::convertToTicketResponse)
+                .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
         }
@@ -85,7 +126,10 @@ public class TicketController {
         try {
             String userId = getUserId(userDetails);
             List<Ticket> tickets = ticketService.getTicketsByUserId(userId);
-            return ResponseEntity.ok(tickets);
+            List<TicketResponse> response = tickets.stream()
+                .map(this::convertToTicketResponse)
+                .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
         }
@@ -98,7 +142,10 @@ public class TicketController {
         try {
             String userId = getUserId(userDetails);
             List<Ticket> tickets = ticketService.getTicketsAssignedTo(userId);
-            return ResponseEntity.ok(tickets);
+            List<TicketResponse> response = tickets.stream()
+                .map(this::convertToTicketResponse)
+                .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
         }
@@ -124,7 +171,8 @@ public class TicketController {
                 return ResponseEntity.status(403).body(new ApiResponse(false, "Access denied"));
             }
             
-            return ResponseEntity.ok(ticket);
+            TicketResponse response = convertToTicketResponse(ticket);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
         }
@@ -281,6 +329,67 @@ public class TicketController {
             } else {
                 return ResponseEntity.badRequest().body(new ApiResponse(false, "Failed to delete ticket"));
             }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
+    // Get ticket trends - ADMIN only
+    @GetMapping("/analytics/trends")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getTicketTrends(@RequestParam(defaultValue = "7days") String timeRange) {
+        try {
+            List<TicketTrendResponse> trends = analyticsService.getTicketTrends(timeRange);
+            return ResponseEntity.ok(trends);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
+    // Get technician ratings - ADMIN only
+    @GetMapping("/analytics/technician-ratings")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getTechnicianRatings(@RequestParam(defaultValue = "7days") String timeRange) {
+        try {
+            List<TechnicianRatingResponse> ratings = analyticsService.getTechnicianRatings(timeRange);
+            return ResponseEntity.ok(ratings);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
+    // Rate ticket - ticket creator only
+    @PostMapping("/{id}/rate")
+    public ResponseEntity<?> rateTicket(@PathVariable String id,
+                                       @Valid @RequestBody RateTicketRequest request,
+                                       @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            Optional<Ticket> ticketOpt = ticketService.getTicketById(id);
+            if (ticketOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Ticket ticket = ticketOpt.get();
+            String userId = getUserId(userDetails);
+            
+            // Only ticket creator can rate
+            if (!ticket.getCreatedBy().equals(userId)) {
+                return ResponseEntity.status(403).body(new ApiResponse(false, "Only ticket creator can rate"));
+            }
+            
+            // Only allow rating for resolved or closed tickets
+            if (ticket.getStatus() != TicketStatus.RESOLVED && ticket.getStatus() != TicketStatus.CLOSED) {
+                return ResponseEntity.badRequest().body(new ApiResponse(false, "Can only rate resolved or closed tickets"));
+            }
+            
+            // Check if already rated
+            if (ticket.getRating() != null) {
+                return ResponseEntity.badRequest().body(new ApiResponse(false, "Ticket already rated"));
+            }
+            
+            // Update ticket with rating
+            Ticket updatedTicket = ticketService.rateTicket(id, request.getRating(), userId);
+            return ResponseEntity.ok(updatedTicket);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
         }

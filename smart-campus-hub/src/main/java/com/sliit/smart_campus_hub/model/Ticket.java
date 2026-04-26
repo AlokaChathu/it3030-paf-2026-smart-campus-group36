@@ -45,6 +45,11 @@ public class Ticket {
     
     private String rejectionReason;  // Only populated when status is REJECTED
     
+    // Rating fields (1-5 stars)
+    private Integer rating;  // 1-5, null if not rated
+    private String ratedBy;  // User ID who submitted the rating
+    private Date ratedAt;  // When the rating was submitted
+    
     private Date createdAt;
     private Date updatedAt;
 }

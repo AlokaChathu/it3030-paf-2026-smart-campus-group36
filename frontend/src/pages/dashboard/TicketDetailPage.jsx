@@ -22,6 +22,9 @@ const TicketDetailPage = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
+  const [rating, setRating] = useState(0);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   const auth = JSON.parse(localStorage.getItem("smart-campus-auth") || "{}");
   const userRole = auth?.role || "USER";
@@ -80,8 +83,13 @@ const TicketDetailPage = () => {
     try {
       const data = await userApi.getUsersByRole("TECHNICIAN");
       setTechnicians(data);
+      const nameMap = {};
+      data.forEach(tech => {
+        nameMap[tech.id] = tech.fullName;
+      });
+      setTechnicianNames(nameMap);
     } catch (err) {
-      console.error("Failed to load technicians:", err);
+      console.error("Failed to fetch technicians:", err);
     }
   };
 
@@ -229,6 +237,25 @@ const TicketDetailPage = () => {
     }
   };
 
+  const handleRateTicket = async () => {
+    if (rating === 0) {
+      setError("Please select a rating");
+      return;
+    }
+    setSubmittingRating(true);
+    try {
+      await ticketApi.rateTicket(id, rating);
+      fetchTicket();
+      setShowRatingModal(false);
+      setRating(0);
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to submit rating. Please try again.");
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       OPEN: "bg-green-100 text-green-800",
@@ -310,21 +337,43 @@ const TicketDetailPage = () => {
                 {new Date(ticket.createdAt).toLocaleTimeString()}
               </p>
             </div>
-            <div className="flex space-x-2">
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                  ticket.status
-                )}`}
-              >
-                {ticket.status}
-              </span>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                  ticket.priority
-                )}`}
-              >
-                {ticket.priority}
-              </span>
+            <div className="flex items-center space-x-3">
+              <div className="flex space-x-2">
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                    ticket.status
+                  )}`}
+                >
+                  {ticket.status}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                    ticket.priority
+                  )}`}
+                >
+                  {ticket.priority}
+                </span>
+              </div>
+              {/* Rating Display */}
+              {ticket.rating && (userId === ticket.createdBy || userRole === "ADMIN") && (
+                <div className="flex items-center space-x-1">
+                  <span className="text-yellow-400 text-lg">
+                    {"★".repeat(ticket.rating)}
+                    {"☆".repeat(5 - ticket.rating)}
+                  </span>
+                </div>
+              )}
+              {/* Rate Ticket Button */}
+              {!ticket.rating && 
+               userId === ticket.createdBy && 
+               (ticket.status === "RESOLVED" || ticket.status === "CLOSED") && (
+                <button
+                  onClick={() => setShowRatingModal(true)}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition text-sm font-medium"
+                >
+                  Rate Ticket
+                </button>
+              )}
             </div>
           </div>
 
@@ -496,7 +545,9 @@ const TicketDetailPage = () => {
                     <h3 className="text-sm font-medium text-gray-500 mb-1">
                       Assigned To
                     </h3>
-                    <p className="text-gray-900">{ticket.assignedTo}</p>
+                    <p className="text-gray-900">
+                      {ticket.assignedToName || ticket.assignedTo}
+                    </p>
                   </div>
                 )}
 
@@ -713,6 +764,49 @@ const TicketDetailPage = () => {
             </>
           )}
         </div>
+
+        {/* Rating Modal */}
+        {showRatingModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Rate Ticket</h2>
+              <p className="text-gray-600 mb-4">
+                Please rate the technician's service (1-5 stars)
+              </p>
+              <div className="flex justify-center space-x-2 mb-6">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className={`text-3xl transition ${
+                      star <= rating ? "text-yellow-400" : "text-gray-300"
+                    } hover:text-yellow-400`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowRatingModal(false);
+                    setRating(0);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRateTicket}
+                  disabled={submittingRating}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-50"
+                >
+                  {submittingRating ? "Submitting..." : "Submit Rating"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

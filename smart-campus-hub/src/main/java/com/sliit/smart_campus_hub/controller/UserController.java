@@ -123,4 +123,25 @@ public class UserController {
         }
     }
 
+    // Get user by ID - ADMIN only
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUserById(@PathVariable String userId) {
+        try {
+            User user = userService.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            // Remove sensitive fields
+            user.setPassword(null);
+            user.setOtp(null);
+            user.setOtpExpiry(null);
+            user.setResetToken(null);
+            user.setResetTokenExpiry(null);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
 }

@@ -164,4 +164,38 @@ export const ticketApi = {
     );
     return response.data;
   },
+
+  // Get ticket trends (ADMIN only)
+  getTicketTrends: async (timeRange = "7days") => {
+    const response = await axios.get(
+      `${API_BASE_URL}/api/tickets/analytics/trends`,
+      {
+        ...getAuthHeaders(),
+        params: { timeRange },
+      }
+    );
+    return response.data;
+  },
+
+  // Get technician ratings (ADMIN only)
+  getTechnicianRatings: async (timeRange = "7days") => {
+    const response = await axios.get(
+      `${API_BASE_URL}/api/tickets/analytics/technician-ratings`,
+      {
+        ...getAuthHeaders(),
+        params: { timeRange },
+      }
+    );
+    return response.data;
+  },
+
+  // Rate ticket
+  rateTicket: async (ticketId, rating) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/tickets/${ticketId}/rate`,
+      { rating },
+      getAuthHeaders()
+    );
+    return response.data;
+  },
 };

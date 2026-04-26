@@ -22,4 +22,13 @@ export const userApi = {
     );
     return response.data;
   },
+
+  // Get user by ID
+  getUserById: async (userId) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/api/users/${userId}`,
+      getAuthHeaders()
+    );
+    return response.data;
+  },
 };

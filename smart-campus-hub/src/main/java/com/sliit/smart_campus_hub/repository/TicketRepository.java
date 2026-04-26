@@ -1,5 +1,6 @@
 package com.sliit.smart_campus_hub.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -25,4 +26,9 @@ public interface TicketRepository extends MongoRepository<Ticket, String> {
     List<Ticket> findByAssignedToAndStatus(String technicianId, TicketStatus status);
     
     List<Ticket> findByResourceId(String resourceId);
+    
+    List<Ticket> findByCreatedAtAfterOrderByCreatedAtAsc(Date date);
+    
+    @Query("{'rating': {$ne: null}, 'createdAt': {$gte: ?0}}")
+    List<Ticket> findByRatingNotNullAndCreatedAtAfter(Date date);
 }

@@ -128,4 +128,19 @@ public class TicketService {
         }
         return false;
     }
+    
+    public Ticket rateTicket(String id, Integer rating, String ratedBy) {
+        Optional<Ticket> ticketOpt = ticketRepository.findById(id);
+        if (ticketOpt.isEmpty()) {
+            return null;
+        }
+        
+        Ticket ticket = ticketOpt.get();
+        ticket.setRating(rating);
+        ticket.setRatedBy(ratedBy);
+        ticket.setRatedAt(new Date());
+        ticket.setUpdatedAt(new Date());
+        
+        return ticketRepository.save(ticket);
+    }
 }
