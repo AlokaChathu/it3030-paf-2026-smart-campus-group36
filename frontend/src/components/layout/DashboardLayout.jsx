@@ -28,11 +28,13 @@ const DashboardLayout = ({ title, children }) => {
       name: "New Booking",
       path: "/user/bookings/new",
       icon: CalendarCheck,
+      end: true,
     },
     {
       name: "My Bookings",
       path: "/user/bookings",
       icon: CalendarCheck,
+      end: true,
     },
   ];
 
@@ -115,6 +117,7 @@ const DashboardLayout = ({ title, children }) => {
                   <NavLink
                     key={item.path}
                     to={item.path}
+                    end={item.end}
                     className={({ isActive }) =>
                       `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
                         isActive

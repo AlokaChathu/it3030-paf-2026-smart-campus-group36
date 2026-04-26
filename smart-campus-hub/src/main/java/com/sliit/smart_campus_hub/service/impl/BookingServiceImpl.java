@@ -35,8 +35,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse createBooking(CreateBookingRequest request, String userEmail) {
         validateBookingWindow(request.getStartTime(), request.getEndTime());
 
-        List<Booking> conflicts = bookingRepository.findConflictingApprovedBookings(
-                request.getResourceId(),
+        List<Booking> conflicts = bookingRepository.findConflictingApprovedBookingsAnyResource(
                 request.getStartTime(),
                 request.getEndTime());
 
@@ -100,12 +99,14 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (newStatus == BookingStatus.APPROVED) {
-            List<Booking> conflicts = bookingRepository.findConflictingApprovedBookings(
-                    booking.getResourceId(),
+            List<Booking> conflicts = bookingRepository.findConflictingApprovedBookingsAnyResource(
                     booking.getStartTime(),
                     booking.getEndTime());
 
-            if (!conflicts.isEmpty()) {
+            boolean hasOtherConflict = conflicts.stream()
+                    .anyMatch(existing -> !existing.getId().equals(booking.getId()));
+
+            if (hasOtherConflict) {
                 throw new BookingConflictException("Cannot approve booking due to a conflict with another approved booking.");
             }
 

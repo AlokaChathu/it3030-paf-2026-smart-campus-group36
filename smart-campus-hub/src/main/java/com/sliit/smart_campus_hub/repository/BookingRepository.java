@@ -20,6 +20,12 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     @Query("{ 'resourceId': ?0, 'status': 'APPROVED', 'startTime': { $lt: ?2 }, 'endTime': { $gt: ?1 } }")
     List<Booking> findConflictingApprovedBookings(Long resourceId, LocalDateTime newStart, LocalDateTime newEnd);
 
+    @Query("{ 'status': 'APPROVED', 'startTime': { $lt: ?1 }, 'endTime': { $gt: ?0 } }")
+    List<Booking> findConflictingApprovedBookingsAnyResource(LocalDateTime newStart, LocalDateTime newEnd);
+
+    @Query("{ 'resourceId': ?0, 'status': { $in: ['PENDING', 'APPROVED'] }, 'startTime': { $lt: ?2 }, 'endTime': { $gt: ?1 } }")
+    List<Booking> findConflictingActiveBookings(Long resourceId, LocalDateTime newStart, LocalDateTime newEnd);
+
     @Query("{ 'resourceId': ?0, 'status': 'APPROVED', 'startTime': { $lt: ?2 }, 'endTime': { $gt: ?1 } }")
     List<Booking> findApprovedBookingsForDay(Long resourceId, LocalDateTime dayStart, LocalDateTime dayEnd);
 }

@@ -15,6 +15,10 @@ const BookingFormPage = () => {
   const [formData, setFormData] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [unavailableSlots, setUnavailableSlots] = useState([]);
+  const nowMin = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+  const endMin = formData.startTime || nowMin;
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -102,6 +106,7 @@ const BookingFormPage = () => {
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleChange}
+                min={nowMin}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-900"
               />
             </div>
@@ -113,6 +118,7 @@ const BookingFormPage = () => {
                 name="endTime"
                 value={formData.endTime}
                 onChange={handleChange}
+                min={endMin}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-900"
               />
             </div>
