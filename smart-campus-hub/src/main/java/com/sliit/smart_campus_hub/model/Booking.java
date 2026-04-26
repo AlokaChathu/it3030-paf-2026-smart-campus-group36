@@ -24,7 +24,7 @@ public class Booking {
     private String id;
 
     @Indexed
-    private Long resourceId;
+    private String resourceId;
 
     @Indexed
     private String userId;

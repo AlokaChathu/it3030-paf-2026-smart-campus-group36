@@ -70,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> getAllBookings(Long resourceId, LocalDate date, BookingStatus status) {
+    public List<BookingResponse> getAllBookings(String resourceId, LocalDate date, BookingStatus status) {
         return bookingRepository.findAll()
                 .stream()
                 .filter(booking -> resourceId == null || resourceId.equals(booking.getResourceId()))
@@ -143,7 +143,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<TimeSlotResponse> getUnavailableSlots(Long resourceId, LocalDate date) {
+    public List<TimeSlotResponse> getUnavailableSlots(String resourceId, LocalDate date) {
         LocalDateTime dayStart = date.atStartOfDay();
         LocalDateTime dayEnd = date.atTime(LocalTime.MAX);
 

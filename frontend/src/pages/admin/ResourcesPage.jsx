@@ -213,9 +213,33 @@ export default function ResourcesPage() {
               required
             />
 
+            <div className="time-inputs">
+              <div>
+                <label>Available From</label>
+                <input
+                  name="availableFrom"
+                  type="time"
+                  value={form.availableFrom}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label>Available To</label>
+                <input
+                  name="availableTo"
+                  type="time"
+                  value={form.availableTo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
             <select name="status" value={form.status} onChange={handleChange}>
               <option value="ACTIVE">Available</option>
               <option value="OUT_OF_SERVICE">Out of Service</option>
+              <option value="MAINTENANCE">Maintenance</option>
             </select>
 
             <div className="form-actions">
@@ -252,6 +276,7 @@ export default function ResourcesPage() {
               <option value="">All Status</option>
               <option value="ACTIVE">Active</option>
               <option value="OUT_OF_SERVICE">Out of Service</option>
+              <option value="MAINTENANCE">Maintenance</option>
             </select>
 
             <input

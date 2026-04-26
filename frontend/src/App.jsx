@@ -189,9 +189,6 @@ function App() {
           }
         />
 
-        <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-
         <Route
           path="/admin/resources"
           element={
@@ -200,14 +197,18 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
-  path="/user/resources"
-  element={
-    <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER"]}>
-      <UserResourcesPage />
-    </ProtectedRoute>
-  }
-/> 
+          path="/user/resources"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER"]}>
+              <UserResourcesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

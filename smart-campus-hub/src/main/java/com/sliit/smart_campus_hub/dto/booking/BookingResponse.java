@@ -11,7 +11,7 @@ import lombok.Data;
 @Builder
 public class BookingResponse {
     private String id;
-    private Long resourceId;
+    private String resourceId;
     private String userId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;

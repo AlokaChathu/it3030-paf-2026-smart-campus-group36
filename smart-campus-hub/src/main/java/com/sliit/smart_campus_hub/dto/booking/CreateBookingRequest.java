@@ -12,7 +12,7 @@ import lombok.Data;
 public class CreateBookingRequest {
 
     @NotNull(message = "resourceId is required")
-    private Long resourceId;
+    private String resourceId;
 
     @NotNull(message = "startTime is required")
     @Future(message = "startTime must be in the future")

@@ -128,6 +128,7 @@ const labResources = resources.filter(
               <option value="">All Status</option>
               <option value="ACTIVE">Active</option>
               <option value="OUT_OF_SERVICE">Out of Service</option>
+              <option value="MAINTENANCE">Maintenance</option>
             </select>
 
             <input

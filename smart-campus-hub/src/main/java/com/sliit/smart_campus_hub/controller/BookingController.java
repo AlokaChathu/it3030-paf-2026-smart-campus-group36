@@ -54,7 +54,7 @@ public class BookingController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<BookingResponse>> getAllBookings(
-            @RequestParam(required = false) Long resourceId,
+            @RequestParam(required = false) String resourceId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(required = false) BookingStatus status) {
         return ResponseEntity.ok(bookingService.getAllBookings(resourceId, date, status));
@@ -63,7 +63,7 @@ public class BookingController {
     @GetMapping("/unavailable")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<List<TimeSlotResponse>> getUnavailableSlots(
-            @RequestParam Long resourceId,
+            @RequestParam String resourceId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(bookingService.getUnavailableSlots(resourceId, date));
     }
