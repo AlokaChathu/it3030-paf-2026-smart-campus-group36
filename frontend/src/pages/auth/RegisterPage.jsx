@@ -54,6 +54,72 @@ const RegisterPage = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validateForm = () => {
+    const name = formData.name.trim();
+    const email = formData.email.trim().toLowerCase();
+    const password = formData.password;
+    const allowedRoles = roleOptions.map((role) => role.value);
+
+    const nameRegex = /^[A-Za-z\s.'-]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
+
+    if (!name) {
+      toast.error("Full name is required");
+      return false;
+    }
+
+    if (name.length < 3) {
+      toast.error("Full name must be at least 3 characters");
+      return false;
+    }
+
+    if (name.length > 60) {
+      toast.error("Full name must not exceed 60 characters");
+      return false;
+    }
+
+    if (!nameRegex.test(name)) {
+      toast.error("Full name can only contain letters, spaces, dots, hyphens, and apostrophes");
+      return false;
+    }
+
+    if (!email) {
+      toast.error("Email address is required");
+      return false;
+    }
+
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+
+    if (!password) {
+      toast.error("Password is required");
+      return false;
+    }
+
+    if (password.includes(" ")) {
+      toast.error("Password must not contain spaces");
+      return false;
+    }
+
+    if (!passwordRegex.test(password)) {
+      toast.error(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      );
+      return false;
+    }
+
+    if (!allowedRoles.includes(formData.role)) {
+      toast.error("Please select a valid role");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -66,12 +132,7 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.name.trim() ||
-      !formData.email.trim() ||
-      !formData.password.trim()
-    ) {
-      toast.error("Name, email, and password are required");
+    if (!validateForm()) {
       return;
     }
 
@@ -79,15 +140,15 @@ const RegisterPage = () => {
       setIsSubmitting(true);
 
       const response = await axiosInstance.post("/api/auth/register", {
-        name: formData.name,
-        email: formData.email,
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
         role: formData.role,
       });
 
       toast.success(response.data?.message || "Registration successful");
 
-      navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`, {
+      navigate(`/verify-otp?email=${encodeURIComponent(formData.email.trim().toLowerCase())}`, {
         replace: true,
       });
     } catch (error) {
