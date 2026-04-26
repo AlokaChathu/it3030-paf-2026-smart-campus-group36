@@ -63,6 +63,93 @@ const ProfilePage = () => {
     fetchProfile();
   }, []);
 
+  const validateProfileForm = () => {
+    const fullName = formData.fullName.trim();
+    const address = formData.address.trim();
+    const age = formData.age.toString().trim();
+    const phoneNumber = formData.phoneNumber.trim();
+
+    const fullNameRegex = /^[A-Za-z\s.'-]+$/;
+    const phoneNumberRegex = /^0\d{9}$/;
+    const numberOnlyRegex = /^\d+$/;
+
+    if (!fullName) {
+      toast.error("Full name is required");
+      return false;
+    }
+
+    if (fullName.length < 3) {
+      toast.error("Full name must be at least 3 characters");
+      return false;
+    }
+
+    if (fullName.length > 60) {
+      toast.error("Full name must not exceed 60 characters");
+      return false;
+    }
+
+    if (!fullNameRegex.test(fullName)) {
+      toast.error(
+        "Full name can only contain letters, spaces, dots, hyphens, and apostrophes"
+      );
+      return false;
+    }
+
+    if (!phoneNumber) {
+      toast.error("Phone number is required");
+      return false;
+    }
+
+    if (!numberOnlyRegex.test(phoneNumber)) {
+      toast.error("Phone number must contain only numbers");
+      return false;
+    }
+
+    if (!phoneNumberRegex.test(phoneNumber)) {
+      toast.error("Phone number must be exactly 10 digits and start with 0");
+      return false;
+    }
+
+    if (!age) {
+      toast.error("Age is required");
+      return false;
+    }
+
+    if (!numberOnlyRegex.test(age)) {
+      toast.error("Age must contain only numbers");
+      return false;
+    }
+
+    const ageNumber = Number(age);
+
+    if (ageNumber < 16 || ageNumber > 100) {
+      toast.error("Age must be between 16 and 100");
+      return false;
+    }
+
+    if (!address) {
+      toast.error("Address is required");
+      return false;
+    }
+
+    if (address.length < 5) {
+      toast.error("Address must be at least 5 characters");
+      return false;
+    }
+
+    if (address.length > 120) {
+      toast.error("Address must not exceed 120 characters");
+      return false;
+    }
+
+    if (/^\d+$/.test(address)) {
+      toast.error("Address cannot contain only numbers");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -74,6 +161,10 @@ const ProfilePage = () => {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
+
+    if (!validateProfileForm()) {
+      return;
+    }
 
     try {
       setIsUpdating(true);

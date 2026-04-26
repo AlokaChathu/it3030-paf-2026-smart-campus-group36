@@ -44,6 +44,27 @@ const ResetPasswordPage = () => {
     }));
   };
 
+  const validatePassword = () => {
+    const password = formData.newPassword;
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
+
+    if (password.includes(" ")) {
+      toast.error("Password must not contain spaces");
+      return false;
+    }
+
+    if (!passwordRegex.test(password)) {
+      toast.error(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      );
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -53,6 +74,10 @@ const ResetPasswordPage = () => {
       !formData.newPassword.trim()
     ) {
       toast.error("Email, OTP, and new password are required");
+      return;
+    }
+
+    if (!validatePassword()) {
       return;
     }
 
