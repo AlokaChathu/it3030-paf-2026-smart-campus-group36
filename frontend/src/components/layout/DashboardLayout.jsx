@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, User, Bell, Users, Shield, LogOut, Ticket } from "lucide-react";
+import { LayoutDashboard, User, Bell, Users, Shield, LogOut, Ticket, CalendarCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const DashboardLayout = ({ title, children }) => {
@@ -29,6 +29,18 @@ const DashboardLayout = ({ title, children }) => {
       path: "/user/notifications",
       icon: Bell,
     },
+    {
+      name: "New Booking",
+      path: "/user/bookings/new",
+      icon: CalendarCheck,
+      end: true,
+    },
+    {
+      name: "My Bookings",
+      path: "/user/bookings",
+      icon: CalendarCheck,
+      end: true,
+    },
   ];
 
   const adminLinks = [
@@ -51,6 +63,11 @@ const DashboardLayout = ({ title, children }) => {
       name: "Notifications",
       path: "/admin/notifications",
       icon: Bell,
+    },
+    {
+      name: "Booking Management",
+      path: "/admin/bookings",
+      icon: CalendarCheck,
     },
     {
       name: "Profile",
@@ -110,6 +127,7 @@ const DashboardLayout = ({ title, children }) => {
                   <NavLink
                     key={item.path}
                     to={item.path}
+                    end={item.end}
                     className={({ isActive }) =>
                       `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
                         isActive
