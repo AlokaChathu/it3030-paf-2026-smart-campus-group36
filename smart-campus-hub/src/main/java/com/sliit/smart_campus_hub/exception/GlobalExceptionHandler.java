@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.sliit.smart_campus_hub.dto.ApiResponse;
 
@@ -51,11 +52,38 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(false, ex.getMessage()));
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoResourceFound(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse(false, "Not found: " + ex.getMessage()));
+    }
+
     // Handle all other exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex) {
+        Throwable t = ex;
+        while (t != null) {
+            if (t instanceof NoResourceFoundException nrf) {
+                return handleNoResourceFound(nrf);
+            }
+            t = t.getCause();
+        }
+
+        if (isStaticResourceNotFoundMessage(ex)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, "API route not found. Rebuild the backend, confirm server port (see startup log), and match VITE_API_BASE_URL. Original: " + ex.getMessage()));
+        }
+
         ex.printStackTrace(); // log for debugging
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse(false, "An internal error occurred: " + ex.getMessage()));
+    }
+
+    private static boolean isStaticResourceNotFoundMessage(Throwable ex) {
+        String m = ex.getMessage();
+        if (m == null) {
+            return false;
+        }
+        return m.contains("No static resource");
     }
 }

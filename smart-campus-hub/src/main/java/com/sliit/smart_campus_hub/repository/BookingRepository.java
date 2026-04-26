@@ -13,6 +13,10 @@ import com.sliit.smart_campus_hub.model.Booking;
 @Repository
 public interface BookingRepository extends MongoRepository<Booking, String> {
 
+    long countByStatus(BookingStatus status);
+
+    long countByStatusAndStartTimeGreaterThanEqual(BookingStatus status, LocalDateTime since);
+
     List<Booking> findByUserIdOrderByStartTimeDesc(String userId);
 
     List<Booking> findByStatusOrderByStartTimeDesc(BookingStatus status);

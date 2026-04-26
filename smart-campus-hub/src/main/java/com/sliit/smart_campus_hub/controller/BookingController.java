@@ -22,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sliit.smart_campus_hub.dto.ApiResponse;
 import com.sliit.smart_campus_hub.dto.booking.BookingResponse;
 import com.sliit.smart_campus_hub.dto.booking.CreateBookingRequest;
+import com.sliit.smart_campus_hub.dto.booking.PeakHoursAnalyticsResponse;
 import com.sliit.smart_campus_hub.dto.booking.TimeSlotResponse;
 import com.sliit.smart_campus_hub.dto.booking.UpdateBookingStatusRequest;
 import com.sliit.smart_campus_hub.enums.BookingStatus;
+import com.sliit.smart_campus_hub.service.BookingAnalyticsService;
 import com.sliit.smart_campus_hub.service.BookingService;
 
 import jakarta.validation.Valid;
@@ -36,6 +38,17 @@ import lombok.RequiredArgsConstructor;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final BookingAnalyticsService bookingAnalyticsService;
+
+    /**
+     * Peak-hours analytics (same controller as /my to avoid any mapping ambiguity in edge setups).
+     */
+    @GetMapping("/analytics/peak-hours")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<PeakHoursAnalyticsResponse> getPeakHoursAnalytics(
+            @RequestParam(required = false) Integer days) {
+        return ResponseEntity.ok(bookingAnalyticsService.getPeakHoursAnalytics(days));
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")

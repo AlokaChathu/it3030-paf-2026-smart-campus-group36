@@ -17,3 +17,7 @@ export const getUnavailableSlots = (resourceId, date) =>
   axiosInstance.get("/api/bookings/unavailable", {
     params: { resourceId, date },
   });
+
+/** Peak-hours analytics: campus-wide from APPROVED bookings. Pass days to limit window; omit/0 = all time. */
+export const getPeakHoursAnalytics = (params = {}) =>
+  axiosInstance.get("/api/bookings/analytics/peak-hours", { params });
