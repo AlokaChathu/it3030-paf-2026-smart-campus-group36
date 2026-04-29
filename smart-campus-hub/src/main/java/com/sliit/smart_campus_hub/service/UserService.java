@@ -19,4 +19,8 @@ public interface UserService {
     List<User> getAllUsers();
 
     void deleteUser(String id);
+
+    String getUserRole(String userId);
+
+    List<User> getUsersByRole(String role);
 }

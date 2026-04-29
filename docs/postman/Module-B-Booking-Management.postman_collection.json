@@ -1,0 +1,190 @@
+{
+  "info": {
+    "_postman_id": "f528406b-4d44-45f5-90f2-92ab1499d0b8",
+    "name": "Module B - Booking Management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Booking workflow + conflict checking endpoints for Smart Campus Hub."
+  },
+  "item": [
+    {
+      "name": "Create Booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resourceId\": 101,\n  \"startTime\": \"2026-04-28T09:00:00\",\n  \"endTime\": \"2026-04-28T11:00:00\",\n  \"purpose\": \"Guest lecture setup\",\n  \"attendees\": 60\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "Get My Bookings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/my",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "my"]
+        }
+      }
+    },
+    {
+      "name": "Get All Bookings (Admin Filtered)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings?resourceId=101&date=2026-04-28&status=PENDING",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings"],
+          "query": [
+            { "key": "resourceId", "value": "101" },
+            { "key": "date", "value": "2026-04-28" },
+            { "key": "status", "value": "PENDING" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Approve Booking (Admin)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"APPROVED\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "{{bookingId}}", "status"]
+        }
+      }
+    },
+    {
+      "name": "Reject Booking (Admin)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"REJECTED\",\n  \"rejectionReason\": \"Hall reserved for examination\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "{{bookingId}}", "status"]
+        }
+      }
+    },
+    {
+      "name": "Cancel Booking",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "{{bookingId}}"]
+        }
+      }
+    },
+    {
+      "name": "Unavailable Slots (Bonus)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/unavailable?resourceId=101&date=2026-04-28",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "unavailable"],
+          "query": [
+            { "key": "resourceId", "value": "101" },
+            { "key": "date", "value": "2026-04-28" }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    }
+  ]
+}

@@ -1,11 +1,12 @@
 package com.sliit.smart_campus_hub.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -92,14 +93,50 @@ public class UserController {
         user.setOtpExpiry(otpExpiry);
         userService.saveUser(user);
 
-        try {
-            emailService.sendOtpEmail(user.getEmail(), otp);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse(false, "Failed to send OTP. Try again later."));
-        }
+        // Service handles mail-failure fallback by logging OTP to console.
+        emailService.sendOtpEmail(user.getEmail(), otp);
         return ResponseEntity.ok(new ApiResponse(true, "Verification OTP resent to your email"));
     }
 
-    
+    // Get users by role - ADMIN only
+    @GetMapping("/role/{role}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUsersByRole(@PathVariable String role) {
+        try {
+            List<User> users = userService.getUsersByRole(role);
+            // Remove sensitive fields
+            users.forEach(user -> {
+                user.setPassword(null);
+                user.setOtp(null);
+                user.setOtpExpiry(null);
+                user.setResetToken(null);
+                user.setResetTokenExpiry(null);
+            });
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
+    // Get user by ID - ADMIN only
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUserById(@PathVariable String userId) {
+        try {
+            User user = userService.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            // Remove sensitive fields
+            user.setPassword(null);
+            user.setOtp(null);
+            user.setOtpExpiry(null);
+            user.setResetToken(null);
+            user.setResetTokenExpiry(null);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
 }

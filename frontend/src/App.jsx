@@ -17,9 +17,17 @@ import UserDashboardPage from "./pages/dashboard/UserDashboardPage";
 import AdminDashboardPage from "./pages/dashboard/AdminDashboardPage";
 import ProfilePage from "./pages/dashboard/ProfilePage";
 import NotificationsPage from "./pages/dashboard/NotificationsPage";
+import TicketsListPage from "./pages/dashboard/TicketsListPage";
+import CreateTicketPage from "./pages/dashboard/CreateTicketPage";
+import TicketDetailPage from "./pages/dashboard/TicketDetailPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
+import BookingFormPage from "./pages/booking/BookingFormPage";
+import MyBookingsPage from "./pages/booking/MyBookingsPage";
+import AdminBookingManagementPage from "./pages/booking/AdminBookingManagementPage";
 
+import ResourcesPage from "./pages/admin/ResourcesPage";
+import UserResourcesPage from "./pages/user/UserResourcesPage";
 function App() {
   return (
     <BrowserRouter>
@@ -101,10 +109,64 @@ function App() {
         />
 
         <Route
+          path="/tickets"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER", "ADMIN"]}>
+              <TicketsListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tickets/create"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER", "ADMIN"]}>
+              <CreateTicketPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tickets/:id"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER", "ADMIN"]}>
+              <TicketDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/bookings/new"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
+              <BookingFormPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/bookings"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
+              <MyBookingsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/admin/dashboard"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/bookings"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminBookingManagementPage />
             </ProtectedRoute>
           }
         />
@@ -123,6 +185,24 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminNotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/resources"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <ResourcesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/resources"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TECHNICIAN", "MANAGER"]}>
+              <UserResourcesPage />
             </ProtectedRoute>
           }
         />

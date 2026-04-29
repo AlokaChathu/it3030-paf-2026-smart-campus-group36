@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.sliit.smart_campus_hub.enums.Role;
 import com.sliit.smart_campus_hub.model.User;
 import com.sliit.smart_campus_hub.repository.UserRepository;
 import com.sliit.smart_campus_hub.service.UserService;
@@ -44,5 +45,19 @@ public class UserServiceImpl implements UserService {
 
     public void deleteUser(String id) {
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public String getUserRole(String userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return null;
+        }
+        return userOpt.get().getRole().name();
+    }
+
+    @Override
+    public List<User> getUsersByRole(String role) {
+        return userRepository.findByRole(Role.valueOf(role));
     }
 }
